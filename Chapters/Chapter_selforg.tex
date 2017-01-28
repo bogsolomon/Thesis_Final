@@ -20,7 +20,7 @@ From all of these the following requirements can be drawn for the system:
 
 \begin{enumerate}
 	\item The self-organizing system must be able to cope with different measurements which represent the load on one of the cloud's servers.
-	\item The self-optimization is achieved without a central controller and only through the relation/communication between the self-organizing agents.
+	\item The self-optimization is achieved without a central controller and only by the relation/communication between the self-organizing agents.
 	\item The self-organizing system detects SLA breaches proactively such that it has time to react before the SLA is breached.
 \end{enumerate}
 
@@ -43,7 +43,11 @@ The fuzzy system will output a single metric representing the load of the server
 
 The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:aco} is best known for load balancing clouds or finding the best route in a network. The algorithm has received a lot of attention and work in academia and was presented in chapter \ref{Chapter_related}. At a high level the algorithm uses a number of simple agents called ants which traverse the network and leave a trail of pheromones which other ants can then follow. Good paths or solutions are reinforced by having more ants traverse them and leaving more pheromones. Once a path or solution is no longer viable, less ants travel it and another path is reinforced as more ants travel that path. In networking optimization ants behave as normal packets and traverse the network from router to router. When an ant reaches a router it can look at how long the arrival router's buffer queue is for the router the ant came from and then reinforce that route based on latency, buffer sizes, etc.
 
-Assuming a network that looks like the one in Figure \ref{fig:aco_init} initially, where the load of the links is the value shown on the edges, and ants start at \textit{S} and end at \textit{E}. Assuming that there are 6 ants in the system, each ant deposits pheromone at a rate of $1/edgeLoad$, and that in the initial state ants have an equal chance of taking an edge as there are no pheromones deposited. After the first run of the ants the pheromone in the network will look as in figure \ref{fig:aco_pher}. In figure \ref{fig:aco_pher} the edges show the number of ants taking each edge and the total amount of pheromone deposited. When going back to the source, more ants will prefer edges with higher pheromone values thus resulting in that path being reinforced, while other paths will have the pheromone level decay. As more time passes, ants will continue to add more pheromone on good paths in the end resulting in the path with the lowest load being reinforced. If the load in the network changes, ants will be able to start reinforcing the path with the better performance and forget about the previous path.
+Take as an example a network that looks like the one in Figure \ref{fig:aco_init} in its initial non-traversed state, where the load of the links is the value shown on the edges of the graph, and in which ants start at node \textit{S} and finish at node \textit{E}. If there are 6 ants in the system, each ant deposits pheromone at a rate of $\frac{1}{edgeLoad}$, and in the initial state ants have an equal chance of taking an edge as there are no pheromones deposited, then the initial probability of an ant taking any given edge is shown in figure \ref{fig:aco_initprob}. Each edge in figure \ref{fig:aco_initprob} has a probability of being traversed by an ant of $\frac{1}{numberEdgesFromNode}$.
+
+After the first run of the ants the pheromone in the network will look as in figure \ref{fig:aco_pher}. In figure \ref{fig:aco_pher} the edges show the number of ants taking each edge and the total amount of pheromone deposited in the form of $\frac{numberAnts}{totalPheomoneLevel}$. For example, the edge from \textit{S} to \textit{1} has 2 ants traversing it and total pheromone being deposited with a value of 2, while the edge from \textit{5} to \textit{6} has 2 ants traversing it and total pheromone being deposited with a value of 4 because the link has less load. While this example assumes that the ants split exactly as the probabilities shown in figure \ref{fig:aco_initprob}, note that it possible for more ants to take an edge with lower probability since ants roll a random value when deciding the edge to take.
+
+When going back to the source, more ants will prefer edges with higher pheromone values thus resulting in that path being reinforced as shown in figure \ref{fig:aco_finalprob} where the probability of ants taking an edge is shown. This example does not include the decay of the pheromone level, but in an ACO implementation the pheromone level always decays at a given rate such that edges that are no longer traveled have their pheromone levels slowly decrease. As more time passes, ants will continue to add more pheromone on good paths in the end resulting in the path with the lowest load being reinforced. If the load in the network changes, ants will be able to start reinforcing the path with the better performance and forget about the previous path.
 
 \begin{figure}
 	\centering
@@ -87,28 +91,13 @@ The ACO model for SLA breach prediction is composed of three components:
 
 \subsection{Self-organizing agent: The ant}
 
-Ants are simple agents that traverse the network of servers. Ants have no knowledge about the global view of the cloud or how overloaded all the servers in the cloud is, they only have knowledge about the currently visited server and a short memory about the last $x$ servers which the ant has visited and what the pheromone level was at those servers.
+Ants are simple agents that traverse the network of servers. They have no knowledge about the global state of the cloud and how overloaded all the servers in the cloud are. Ants only know the state at the currently visited server and also have a short memory about the last $x$ servers which the ant has visited and what the pheromone level was at those servers.
 
 Whenever a server starts, the server's control system creates a new ant and sends it through the network of servers. Thus the total number of ants is equal to $N$ where $N$ is the number of live servers in the cloud. When an ant is first created, because it has no prior knowledge, it is sent to another server randomly. If only one server exists in the cloud, then the ant keeps visiting the same server.
 
-As ants reach other servers they deposit pheromone at the server they arrive at, at a rate inversely proportional to the load of the server. At the same time ants wait at the server a time proportional to the load of the server. Thus overloaded servers will have less pheromone deposited when compared to an under-loaded server. By having ants wait a longer time at overloaded servers, the overall amount of pheromone in the network will further decrease. With this approach, less pheromone in the network means that the cloud has more load as more servers have low pheromone levels because of being overloaded.
+As ants reach other servers they deposit pheromone at the server they arrive at, at a rate inversely proportional to the load of the server as represented by the fuzzy control system. At the same time ants wait at the server a time proportional to the load of the server. Thus overloaded servers will have less pheromone deposited when compared to an under-loaded server. By having ants wait a longer time at overloaded servers, the overall amount of pheromone in the network will further decrease. With this approach, a lower average amount of pheromone in the network of servers means that the cloud has higher load due to the fact that a larger number of servers have low pheromone levels because of being overloaded.
 
-\subsection{Server and cloud load: Pheromone levels}
-
-\subsection{Mathematical model}
-
-
-For the self-organizing self-optimizing control system for the collaborative media application cloud presented in this thesis, the pheromone level in the network of servers is used as a proxy for how loaded the entire cloud of servers is and used to decide when to add or remove servers. 
-
-Assume that an ant $k_{1}$ deposits an amount of pheromone $\tau_{k1}$ when it reaches a node which has 0 load - represented by a high fuzzy confidence value, and waits at an under-loaded node $15s$. Another ant $k_{2}$ which reaches a node where the confidence value is $50\%$ of the higher threshold will deposit only $\tau_{k} * (1 - p)$ where $p$ is the fuzzy confidence as a percentage and waits at the node a time of $15s/(1-p)$ with a maximum wait time of $60s$ to avoid waiting an infinite time when $p$ approaches $100\%$. At the same time, the pheromone left by the ants decays at a rate of $\rho$ every $15s$. As such, the amount of pheromone at any node can be seen as:
-
-\begin{equation}
-p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
-\end{equation}
-
-where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in $15s$ increments and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.
-
-At the same time, ants store information about which servers they have visited and time passed since the last visit. When an ant decides which server to go to, it uses a random function which is proportional to the time since it has not visited a server combined with the pheromone level of the destination server. Thus the ant will give preference to the servers it has not visited in a long time, and especially the servers it has never visited. Because the server structure is not stable and servers can join and leave at any time, ants decide the next server to visit based on the servers known by the current server the ant is at.  Assume a cloud with 5 servers and an ant which has the information in table \ref{tab:ant_prio} in it's visit history table and which reaches Server 5.
+Ants also store information about the last $x$ servers the ant has visited and time passed since the last visit to each of these servers. When an ant decides which server to go to, it uses a random function which is proportional to the time since it has not visited a server combined with the pheromone level of the destination server. Thus the ant will give preference to the servers it has not visited in a long time, and especially the servers it has never visited. Because the server structure is not stable and servers can join and leave at any time, ants decide the next server to visit based on the servers known by the current server the ant is at.  Assume a cloud with 5 servers and an ant which has the information in table \ref{tab:ant_prio} in it's visit history table and which reaches Server 5.
 
 \begin{table}
 \centering
@@ -167,6 +156,23 @@ In order to avoid having all ants visit a new node at the same time, whenever an
 t_{new} = random(0, max(t_{known}))
 \label{eq:randomnew}
 \end{equation}
+
+
+\subsection{Server and cloud load: Pheromone levels}
+
+\subsection{Mathematical model}
+
+
+For the self-organizing self-optimizing control system for the collaborative media application cloud presented in this thesis, the pheromone level in the network of servers is used as a proxy for how loaded the entire cloud of servers is and used to decide when to add or remove servers. 
+
+Assume that an ant $k_{1}$ deposits an amount of pheromone $\tau_{k1}$ when it reaches a node which has 0 load - represented by a high fuzzy confidence value, and waits at an under-loaded node $15s$. Another ant $k_{2}$ which reaches a node where the confidence value is $50\%$ of the higher threshold will deposit only $\tau_{k} * (1 - p)$ where $p$ is the fuzzy confidence as a percentage and waits at the node a time of $15s/(1-p)$ with a maximum wait time of $60s$ to avoid waiting an infinite time when $p$ approaches $100\%$. At the same time, the pheromone left by the ants decays at a rate of $\rho$ every $15s$. As such, the amount of pheromone at any node can be seen as:
+
+\begin{equation}
+p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
+\end{equation}
+
+where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in $15s$ increments and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.
+
 
 The ACO algorithm is used in order to decide when the system is about to breach its SLAs. Once the ACO algorithm detects that the system's SLA is about to be breached the ant house hunting algorithm starts in order to find how many servers should be started or removed. As such, each ant is also responsible for measuring the pheromone level at each node it visits. Ants store a history of the last $N$ nodes that they visited and the pheronomone level at each of these nodes. Every time an ant moves to a new server, it removes the oldest pheronomone value from this list and adds the pheronomone at the current node. It then computes an aggregate metric of the pheronomone at the last $N$ nodes visited, which is a simple average:
 
