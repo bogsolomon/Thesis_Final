@@ -6,7 +6,7 @@ The first step in the development of the self-organizing autonomic system is the
 
 \section{Self-organizing autonomic system for auto-scaling of cloud resources}
 
-Due to the wide variety in applications which are deployed and run on clouds, a general self-organizing system for cloud resources must be able to accept different measured inputs from the managed cloud application and perform the management of the cloud properly such that SLA breaches are minimized. Load for a server can be represented by a simple metric like CPU usage or memory usage or a complex combination of the number of clients connected to the server, the number of sessions running on the server, and the number of video streams received by the server and multiplexed towards receiving clients \cite{bogdan:miles2012chapter}. Based on the application's perturbations, each server can decide if it should receive more clients or not, independent of any decision made by another server. On top of the server self-organization with relation to accepting new clients, the system also needs an approach to determine when the cluster's SLA will be breached and take proactive action by adding or removing servers from the cluster. 
+Due to the wide variety in applications which are deployed and run on clouds, a generic self-organizing system for cloud resources must be able to accept different measured inputs from the managed cloud application and perform the management of the cloud properly such that SLA breaches are minimized. Load for a server can be represented by a simple metric like CPU usage or memory usage or a complex combination of the number of clients connected to the server, the number of sessions running on the server, and the number of video streams received by the server and multiplexed towards receiving clients in the case of complex applications like the one presented in \cite{bogdan:miles2012chapter}. Based on the application's perturbations as noticed through the server load, each server can decide if it should receive more clients or not, independent of any decision made by another server. On top of this mechanism for server self-organization with relation to accepting new clients, the system also needs an approach to determine when the cluster's SLA will be breached and take proactive action by adding or removing servers from the cluster.
 
 The reason to use a self-organizing systems for the adaptation of cloud resources is due to the intrinsic properties that self-organizing systems poses:
 \begin{enumerate}
@@ -16,10 +16,10 @@ The reason to use a self-organizing systems for the adaptation of cloud resource
 	\item Anticipation - the system can anticipate problems and solve them before they impact the whole system. This is obviously desired, as we wish to detect SLA breaches before they happen, such that corrective actions can be taken and the breach can be avoided.
 \end{enumerate}
 
-From all of these the following requirements can be drawn:
+From all of these the following requirements can be drawn for the system:
 
 \begin{enumerate}
-	\item The self-organizing system must be able to cope with different measurements which represent the load on each of the cloud's servers.
+	\item The self-organizing system must be able to cope with different measurements which represent the load on one of the cloud's servers.
 	\item The self-optimization is achieved without a central controller and only through the relation/communication between the self-organizing agents.
 	\item The self-organizing system detects SLA breaches proactively such that it has time to react before the SLA is breached.
 \end{enumerate}
@@ -39,9 +39,9 @@ The first level of self-optimization for the system under control is each server
 
 The fuzzy system will output a single metric representing the load of the server. This metric is then used by the self-organizing agents in order to predict an SLA breach and take actions to avoid the breach.
 
-\section{SLA breach detection: Ant Colony Optimization}
+\section{SLA breach prediction: Ant Colony Optimization}
 
-The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:aco} is best known for load balancing clouds or finding the best route in a network. The algorithm has received a lot of attention and work in academia and was presented in chapter \ref{Chapter_related}. At a high level the algorithm uses a number of simple agents called ants which traverse the network and leave a trail of pheromones which other ants can then follow. Good paths or solutions are reinforced by having more ants traverse them and leaving more pheromones. Once a path or solution is no longer good, less ants travel it and another path is reinforced as more ants travel that path. In networking optimization ants behave as normal packets and travel the network from router to router. When an ant reaches a router it can look at how long the arrival router's buffer queue is for the router the ant came from and then reinforce that route based on latency, buffer sizes, etc. as shown in Figure \ref{fig:aco}
+The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:aco} is best known for load balancing clouds or finding the best route in a network. The algorithm has received a lot of attention and work in academia and was presented in chapter \ref{Chapter_related}. At a high level the algorithm uses a number of simple agents called ants which traverse the network and leave a trail of pheromones which other ants can then follow. Good paths or solutions are reinforced by having more ants traverse them and leaving more pheromones. Once a path or solution is no longer viable, less ants travel it and another path is reinforced as more ants travel that path. In networking optimization ants behave as normal packets and traverse the network from router to router. When an ant reaches a router it can look at how long the arrival router's buffer queue is for the router the ant came from and then reinforce that route based on latency, buffer sizes, etc. as shown in Figure \ref{fig:aco}
 
 \begin{figure}
 	\centering
@@ -50,9 +50,32 @@ The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:a
 	\label{fig:aco}
 \end{figure}
 
-For the self-organizing self-optimizing control system for the collaborative media application cloud presented in this thesis, the pheromone level in the network of servers is used as a proxy for how loaded the entire cloud of servers is and used to decide when to add or remove servers. Whenever a media server starts, the media server's control system creates a new ant and sends it through the network of servers. Thus the total number of ants is equal to $N$ where $N$ is the number of servers. When an ant is first created, because it has no prior knowledge, it is sent to another server randomly. If only one server exists in the cloud, then the ant keeps visiting the same server.
+\subsection{ACO Model for SLA breach prediction}
+
+The self-organizing algorithm used to predict SLA breaches in cloud systems is similar in nature to how the ACO algorithm behaves when finding the best route in a network. However, there are a number of significant differences due to the nature of the problem that is being resolved. The goal of the ACO algorithm while performing path optimization is to discover how viable different routes are and reinforce the good routes while at the same time diminishing the use of bad routes. For this problem the ants deposit pheromones on the routes between nodes such that paths with higher pheromones are more desired. In the case of the SLA breach prediction problem, the goal of the ACO algorithm is to determine based on the knowledge about the visited servers if the whole cloud is about to breach it's SLA requirements. For this problem, the ants deposit pheromones at the servers and use the amount of pheromone as a proxy of how loaded the whole cloud.
+
+The ACO model for SLA breach prediction is composed of three components:
+
+\begin{enumerate}
+	\item Ants - ants are simple agents which traverse the network of servers and deposit pheromone at the servers based on a mathematical model
+	\item Pheromone levels - each server has it's own pheromone level which is increased by ants visiting the server and decays periodically. Pheromones are a proxy of how overloaded a single server is.
+	\item Mathematical model - this is the model which converts the fuzzy model result of each server into a pheromone value. The mathematical model also represents when an SLA breach is predicted.
+\end{enumerate}
+
+\subsection{Self-organizing agent: The ant}
+
+Ants are simple agents that traverse the network of servers. Ants have no knowledge about the global view of the cloud or how overloaded all the servers in the cloud is, they only have knowledge about the currently visited server and a short memory about the last $x$ servers which the ant has visited and what the pheromone level was at those servers.
+
+Whenever a server starts, the server's control system creates a new ant and sends it through the network of servers. Thus the total number of ants is equal to $N$ where $N$ is the number of live servers in the cloud. When an ant is first created, because it has no prior knowledge, it is sent to another server randomly. If only one server exists in the cloud, then the ant keeps visiting the same server.
 
 As ants reach other servers they deposit pheromone at the server they arrive at, at a rate inversely proportional to the load of the server. At the same time ants wait at the server a time proportional to the load of the server. Thus overloaded servers will have less pheromone deposited when compared to an under-loaded server. By having ants wait a longer time at overloaded servers, the overall amount of pheromone in the network will further decrease. With this approach, less pheromone in the network means that the cloud has more load as more servers have low pheromone levels because of being overloaded.
+
+\subsection{Server and cloud load: Pheromone levels}
+
+\subsection{Mathematical model}
+
+
+For the self-organizing self-optimizing control system for the collaborative media application cloud presented in this thesis, the pheromone level in the network of servers is used as a proxy for how loaded the entire cloud of servers is and used to decide when to add or remove servers. 
 
 Assume that an ant $k_{1}$ deposits an amount of pheromone $\tau_{k1}$ when it reaches a node which has 0 load - represented by a high fuzzy confidence value, and waits at an under-loaded node $15s$. Another ant $k_{2}$ which reaches a node where the confidence value is $50\%$ of the higher threshold will deposit only $\tau_{k} * (1 - p)$ where $p$ is the fuzzy confidence as a percentage and waits at the node a time of $15s/(1-p)$ with a maximum wait time of $60s$ to avoid waiting an infinite time when $p$ approaches $100\%$. At the same time, the pheromone left by the ants decays at a rate of $\rho$ every $15s$. As such, the amount of pheromone at any node can be seen as:
 
