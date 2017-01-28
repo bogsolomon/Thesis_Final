@@ -41,13 +41,36 @@ The fuzzy system will output a single metric representing the load of the server
 
 \section{SLA breach prediction: Ant Colony Optimization}
 
-The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:aco} is best known for load balancing clouds or finding the best route in a network. The algorithm has received a lot of attention and work in academia and was presented in chapter \ref{Chapter_related}. At a high level the algorithm uses a number of simple agents called ants which traverse the network and leave a trail of pheromones which other ants can then follow. Good paths or solutions are reinforced by having more ants traverse them and leaving more pheromones. Once a path or solution is no longer viable, less ants travel it and another path is reinforced as more ants travel that path. In networking optimization ants behave as normal packets and traverse the network from router to router. When an ant reaches a router it can look at how long the arrival router's buffer queue is for the router the ant came from and then reinforce that route based on latency, buffer sizes, etc. as shown in Figure \ref{fig:aco}
+The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:aco} is best known for load balancing clouds or finding the best route in a network. The algorithm has received a lot of attention and work in academia and was presented in chapter \ref{Chapter_related}. At a high level the algorithm uses a number of simple agents called ants which traverse the network and leave a trail of pheromones which other ants can then follow. Good paths or solutions are reinforced by having more ants traverse them and leaving more pheromones. Once a path or solution is no longer viable, less ants travel it and another path is reinforced as more ants travel that path. In networking optimization ants behave as normal packets and traverse the network from router to router. When an ant reaches a router it can look at how long the arrival router's buffer queue is for the router the ant came from and then reinforce that route based on latency, buffer sizes, etc.
+
+Assuming a network that looks like the one in Figure \ref{fig:aco_init} initially, where the load of the links is the value shown on the edges, and ants start at \textit{S} and end at \textit{E}. Assuming that there are 6 ants in the system, each ant deposits pheromone at a rate of $1/edgeLoad$, and that in the initial state ants have an equal chance of taking an edge as there are no pheromones deposited. After the first run of the ants the pheromone in the network will look as in figure \ref{fig:aco_pher}. In figure \ref{fig:aco_pher} the edges show the number of ants taking each edge and the total amount of pheromone deposited. When going back to the source, more ants will prefer edges with higher pheromone values thus resulting in that path being reinforced, while other paths will have the pheromone level decay. As more time passes, ants will continue to add more pheromone on good paths in the end resulting in the path with the lowest load being reinforced. If the load in the network changes, ants will be able to start reinforcing the path with the better performance and forget about the previous path.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{aco}
-	\caption{Ant Colony Optimization}
-	\label{fig:aco}
+	\includegraphics[width=0.9\linewidth]{aco_init}
+	\caption{Network Ant Colony Optimization - Initial state}
+	\label{fig:aco_init}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{aco_initprob}
+	\caption{Network Ant Colony Optimization - Path probability initial}
+	\label{fig:aco_initprob}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{aco_pher}
+	\caption{Network Ant Colony Optimization - Pheromone update}
+	\label{fig:aco_pher}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{aco_finalprob}
+	\caption{Network Ant Colony Optimization - Path probability update}
+	\label{fig:aco_finalprob}
 \end{figure}
 
 \subsection{ACO Model for SLA breach prediction}
