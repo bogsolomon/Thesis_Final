@@ -11,7 +11,7 @@ Due to the wide variety in applications which are deployed and run on clouds, a 
 The reason to use a self-organizing systems for the adaptation of cloud resources is due to the intrinsic properties that self-organizing systems poses:
 \begin{enumerate}
 	\item Adaptable - the ability to deal with changes in the environment which were not predicted at design time. This is important for the system developed for the thesis as we do not know the bounds of how many servers could be in a cloud at one time or the maximum peak demand for the service and as such we want a system which is able to adapt the control law dynamically.
-	\item Resilient - parts of the system can die or be lost but the remaining still perform their goal. In a cloud environment this is desired, as servers can come up an down at any time, and even network connectivity could be lost between servers or between data centres.
+	\item Resilient - parts of the system can die or be lost but the remaining still perform their goal. In a cloud environment this is desired, as servers can come up an down at any time, and even network connectivity could be lost between servers or between data centers.
 	\item Emergent - the complex behaviour arises from the properties and behaviour of the simple parts. As a cloud of servers increases in size it becomes more complicated for a single controller to manage the entire system. As such a system where the control emerges from the interactions of a lot of small parts is desired as it decreases complexity and can scale much more, at the cost of overall resource utilization.
 	\item Anticipation - the system can anticipate problems and solve them before they impact the whole system. This is obviously desired, as we wish to detect SLA breaches before they happen, such that corrective actions can be taken and the breach can be avoided.
 \end{enumerate}
@@ -97,7 +97,7 @@ Whenever a server starts, the server's control system creates a new ant and send
 
 As ants reach other servers they deposit pheromone at the server they arrive at, at a rate inversely proportional to the load of the server as represented by the fuzzy control system. At the same time ants wait at the server a time proportional to the load of the server. Thus overloaded servers will have less pheromone deposited when compared to an under-loaded server. By having ants wait a longer time at overloaded servers, the overall amount of pheromone in the network will further decrease. With this approach, a lower average amount of pheromone in the network of servers means that the cloud has higher load due to the fact that a larger number of servers have low pheromone levels because of being overloaded.
 
-Ants also store information about the last $x$ servers the ant has visited and time passed since the last visit to each of these servers. When an ant decides which server to go to, it uses a random function which is proportional to the time since it has not visited a server combined with the pheromone level of the destination server. Thus the ant will give preference to the servers it has not visited in a long time, and especially the servers it has never visited. Because the server structure is not stable and servers can join and leave at any time, ants decide the next server to visit based on the servers known by the current server the ant is at.  Assume a cloud with 5 servers and an ant which has the information in table \ref{tab:ant_prio} in it's visit history table and which reaches Server 5.
+Ants also store information about the last $x$ servers the ant has visited and the time passed since the last visit to each of these servers. When an ant decides which server to go to, it uses a random function which is proportional to the time since it has visited a server combined with the pheromone level of the destination server. Thus the ant will give preference to the servers it has not visited in a long time, and especially the servers it has never visited or which are not in it's memory. Because the server structure is not stable and servers can join and leave at any time, ants decide the next server to visit based on the servers known by the current server the ant is at.  Assume a cloud with 5 servers and an ant which has the information in table \ref{tab:ant_prio} in it's history table and which reaches Server 5.
 
 \begin{table}
 \centering
@@ -119,7 +119,7 @@ Based on the table, the ant computes the probability of visiting each server as:
 P_s = (t_s / \sum_{i=1}^{N} t_i + p_{s} / \sum_{i=1}^{N} p_i) / 2
 \end{equation}
 
-where $P_s$ is the probability of visiting server $s$, $t_s$ is the time since it has visited server $s$ last time and $p_{s}$ is the pheromone at server $s$. These probabilities are computed only on the servers known as being up by the server the ant is at. The server the ant is currently at has to be excluded from the calculations, and it's probability will be 0. Let us assume also that Server 5, which is the server the ant is at currently does not yet know about server 3. As such, the visit probability table looks as in Table \ref{tab:ant_prob}.
+where $P_s$ is the probability of visiting server $s$, $t_s$ is the time since it has visited server $s$ last time and $p_{s}$ is the pheromone at server $s$. These probabilities are computed only on the servers known as being up by the server the ant is at. The server the ant is currently at has to be excluded from the calculations, and it's visit probability will be 0. Assuming also that Server 5, which is the server the ant is at currently does not yet know about server 3. As such, the visit probability table looks as in Table \ref{tab:ant_prob}.
 
 \begin{table}
 \centering
@@ -134,13 +134,13 @@ Server 5 & 0 \\
 \label{tab:ant_prob}
 \end{table}
 
-As such, the ant will roll a random value between 0 and 1, and choose which server to go to. A value between 0 and 0.3842 means Server 4, between 0.3842 and 0.7352 means Server 1 and between 0.7352 and 1 means Server 2. Assuming the value the ant rolls is 0.7, and that the ant waits at Server 5 for 5s and deposits 1 pheromone, the routing table after the ant moves to the next server will be as the one in Table \ref{tab:ant_post}.
+As such, the ant will roll a random value between 0 and 1, and choose which server to go to. A value between 0 and 0.3842 means that the next server will be \textit{Server 4}, between 0.3842 and 0.7352 it means that the next server will be \textit{Server 1} and a value between 0.7352 and 1 means \textit{Server 2}. Assuming the random value the ant rolls is 0.7, and that the ant waits at Server 5 for 5s and deposits 1 pheromone, the routing table after the ant moves to the next server will be as the one in Table \ref{tab:ant_post}.
 
 \begin{table}
 \centering
 \begin{tabular}{c|c|c}
 Server & Time since last visit (s) & Pheromone Level \\
-Server 1 & 0 & 8 \\
+Server 1 & 0 & 10 \\
 Server 2 & 25 & 5 \\
 Server 3 & 10 & 8 \\
 Server 4 & 40 & 5.5 \\
@@ -157,8 +157,9 @@ t_{new} = random(0, max(t_{known}))
 \label{eq:randomnew}
 \end{equation}
 
-
 \subsection{Server and cloud load: Pheromone levels}
+
+As ants move through the network of servers they deposit pheromones. At the same time the pheromone decays at the servers at a constant rate.
 
 \subsection{Mathematical model}
 
