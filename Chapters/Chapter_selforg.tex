@@ -157,35 +157,12 @@ t_{new} = random(0, max(t_{known}))
 \label{eq:randomnew}
 \end{equation}
 
-\subsection{Server and cloud load: Pheromone levels}
-
-As ants move through the network of servers they deposit pheromones. At the same time the pheromone decays at the servers at a constant rate. For the purpose of controlling the number of servers in the cloud the pheromone level in the network is used as a proxy for how loaded the entire cloud of servers is and used to decide when to add or remove servers. 
-
-Assume that an ant $k_{1}$ deposits an amount of pheromone $\tau_{k1}$ when it reaches a node which has 0 load - represented by a high fuzzy confidence value, and waits at an under-loaded node $15s$. Another ant $k_{2}$ which reaches a node where the confidence value is $50\%$ of the higher threshold will deposit only $\tau_{k} * (1 - p)$ where $p$ is the fuzzy confidence as a percentage and waits at the node a time of $15s/(1-p)$ with a maximum wait time of $60s$ to avoid waiting an infinite time when $p$ approaches $100\%$. At the same time, the pheromone left by the ants decays at a rate of $\rho$ every $15s$. As such, the amount of pheromone at any node can be seen as:
-
-\begin{equation}
-p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
-\end{equation}
-
-where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in $15s$ increments and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.
-
-\subsection{Mathematical model}
-
-
-The ACO algorithm is used in order to decide when the system is about to breach its SLAs. Once the ACO algorithm detects that the system's SLA is about to be breached the ant house hunting algorithm starts in order to find how many servers should be started or removed. As such, each ant is also responsible for measuring the pheromone level at each node it visits. Ants store a history of the last $N$ nodes that they visited and the pheronomone level at each of these nodes. Every time an ant moves to a new server, it removes the oldest pheronomone value from this list and adds the pheronomone at the current node. It then computes an aggregate metric of the pheronomone at the last $N$ nodes visited, which is a simple average:
-
-\begin{equation}
-p_{ant} = \sum_{i=1}^{N} p_{N} / N
-\end{equation}
-
-where $p_{N}$ is the pheromone at server $N$. Once the pheromone level of an ant goes under a predefined value, the ant morphs into a house hunting ant which searches for the new count of servers which should be added to the cloud. Similarly, if the pheromone level of an ant becomes too high, the ant morphs and starts searching for the number of servers which should be removed from the cloud. The house hunting algorithm used to optimize the number of servers in the cloud does not start until enough of the ants have morphed into house hunting ants. Until enough ants have morphed for the house hunting algorithm to start, the morphed ants continue behaving as ACO ants. Once more than half of the ants morph all ants go to one node and the house hunting algorithm starts.
-
-When an ant reaches a new control node it is processed by the controller as shown in Algorithm \ref{ant:pseudocode}
+An ant's behaviour can be described by the algorithm below:
 
 \begin{algorithm}
 \begin{algorithmic}
 	\State Calculate pheromone at current node
-	\State Update ant's server tables
+	\State Update ant's server history tables
 	\If{Ant should morph}
 		\State Morph ant
 	\Else
@@ -205,9 +182,37 @@ For example, for a network of five servers Figure \ref{fig:antnetwork} shows the
 	\label{fig:antnetwork}
 \end{figure}
 
-\subsection{ACO Parameter Identification}
+\subsection{Server and cloud load: Pheromone levels}
 
-There are a number of parameters that are used in order to tune the ACO algorithm for the self-optimization of the media cloud:
+For the purpose of controlling the number of servers in the cloud, the pheromone level in the network is used as a proxy for how loaded the entire cloud of servers is and is used to decide when to add or remove servers. As ants move through the network of servers they deposit pheromones - whenever an ant reaches a server it computes how much pheromone to deposit based on the result of the control system for that server. If the server's control system has a result which shows that the server is underloaded then more pheromone is deposited. If the server is overloaded then less pheromone is deposited. At the same time the pheromone amount at each server decays periodically at a constant rate. As such, a large amount of pheromone shows that servers are underloaded and servers should be removed, while a small amount of pheromone shows that servers are overloaded and that servers should be added.
+
+For example, assume that an ant $k_{1}$ deposits an amount of pheromone $\tau_{k1}$ when it reaches a node which has 0 load - represented by a high fuzzy confidence value, and waits at an under-loaded node $15s$. Another ant $k_{2}$ which reaches a node where the confidence value is $50\%$ of the higher threshold will deposit only $\tau_{k} * (1 - p)$ where $p$ is the fuzzy confidence as a percentage and waits at the node a time of $15s/(1-p)$ with a maximum wait time of $60s$ to avoid waiting an infinite time when $p$ approaches $100\%$. At the same time, the pheromone left by the ants decays at a rate of $\rho$ every $15s$. As such, the amount of pheromone at any node can be seen as:
+
+\begin{equation}
+p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
+\end{equation}
+
+where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in $15s$ increments and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.
+
+On top of updating the pheromone at each server, each ant is also responsible for measuring the pheromone level at each node it visits. Ants store a history of the last $x$ nodes that they visited and the pheromone level at each of these nodes. Every time an ant moves to a new server, it removes the oldest pheromone value from this list and adds the pheromone at the current node. It then computes an aggregate metric of the pheromone at the last $x$ nodes visited, which is a simple average:
+
+\begin{equation}
+p_{ant} = \sum_{i=1}^{N} p_{N} / N
+\end{equation}
+
+where $p_{N}$ is the pheromone at server $N$. Once the pheromone level of an ant goes under a predefined value, the ant triggers the algorithm to determine the new count of servers which should be added to the cloud. Similarly, if the pheromone level of an ant becomes too high, the ant triggers the algorithm to determine the number of servers which should be removed from the cloud. The algorithm used to increase or decrease the size of the cloud triggers when more than half of the ants in the system agree that the algorithm should start. Until enough ants agree to start the cloud size optimization the ants continue moving through the network of servers and update the pheromone levels. Once more than half of the ants agree all ants stop and the optimization algorithm starts.
+
+\subsection{Mathematical model}
+
+The pheromone level at a single node is defined as mentioned in the previous section as:
+
+\begin{equation}
+p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
+\end{equation}
+
+where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in some time increment and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.
+
+There are a number of parameters that are used in order to tune the ACO algorithm:
 
 \begin{enumerate}
 	\item Decay amount - the amount that the pheromone level decreases at each server: $\rho$
