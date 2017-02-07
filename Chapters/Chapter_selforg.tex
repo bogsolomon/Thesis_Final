@@ -186,14 +186,6 @@ For example, for a network of five servers Figure \ref{fig:antnetwork} shows the
 
 For the purpose of controlling the number of servers in the cloud, the pheromone level in the network is used as a proxy for how loaded the entire cloud of servers is and is used to decide when to add or remove servers. As ants move through the network of servers they deposit pheromones - whenever an ant reaches a server it computes how much pheromone to deposit based on the result of the control system for that server. If the server's control system has a result which shows that the server is underloaded then more pheromone is deposited. If the server is overloaded then less pheromone is deposited. At the same time the pheromone amount at each server decays periodically at a constant rate. As such, a large amount of pheromone shows that servers are underloaded and servers should be removed, while a small amount of pheromone shows that servers are overloaded and that servers should be added.
 
-For example, assume that an ant $k_{1}$ deposits an amount of pheromone $\tau_{k1}$ when it reaches a node which has 0 load - represented by a high fuzzy confidence value, and waits at an under-loaded node $15s$. Another ant $k_{2}$ which reaches a node where the confidence value is $50\%$ of the higher threshold will deposit only $\tau_{k} * (1 - p)$ where $p$ is the fuzzy confidence as a percentage and waits at the node a time of $15s/(1-p)$ with a maximum wait time of $60s$ to avoid waiting an infinite time when $p$ approaches $100\%$. At the same time, the pheromone left by the ants decays at a rate of $\rho$ every $15s$. As such, the amount of pheromone at any node can be seen as:
-
-\begin{equation}
-p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
-\end{equation}
-
-where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in $15s$ increments and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.
-
 On top of updating the pheromone at each server, each ant is also responsible for measuring the pheromone level at each node it visits. Ants store a history of the last $x$ nodes that they visited and the pheromone level at each of these nodes. Every time an ant moves to a new server, it removes the oldest pheromone value from this list and adds the pheromone at the current node. It then computes an aggregate metric of the pheromone at the last $x$ nodes visited, which is a simple average:
 
 \begin{equation}
@@ -204,7 +196,7 @@ where $p_{N}$ is the pheromone at server $N$. Once the pheromone level of an ant
 
 \subsection{Mathematical model}
 
-The pheromone level at a single node is defined as mentioned in the previous section as:
+The pheromone level at a single node is defined base don the previous section as:
 
 \begin{equation}
 p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
@@ -212,16 +204,18 @@ p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
 
 where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in some time increment and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.
 
-There are a number of parameters that are used in order to tune the ACO algorithm:
+Based on this equation, there are a number of parameters that can be tuned for the ACO algorithm:
 
 \begin{enumerate}
 	\item Decay amount - the amount that the pheromone level decreases at each server: $\rho$
 	\item Decay rate - how often does the pheromone level decay at each server: $T_{decay}$
-	\item Ant wait time - the minimum wait time for an ant at a server: $T_{minwait}$
+	\item Ant minimum wait time - the minimum wait time for an ant at a server: $T_{minwait}$
 	\item Ant pheromone level - the maximum amount of pheromone deposited by an ant at a server: $\tau_{max}$
 	\item Ant history size - how many servers an ant should store in it's history
-	\item Minimum/maximum morph level - the minimum/maximum pheromone level across the last $x$ servers visited by the ant required for the ant to morph: $Pt_{max}$/$Pt_{min}$
+	\item Minimum/maximum trigger level - the minimum/maximum average pheromone level across the last $x$ servers visited by the ant required for the ant to trigger the optimization algorithm: $Pt_{max}$/$Pt_{min}$
 \end{enumerate}
+
+Based on these parameters the following three cases can be considered for how the system will behave.
 
 \subsubsection{Under-loaded server}
 
@@ -253,7 +247,7 @@ As such it can be determined that:
 
 \subsubsection{Balanced server}
 
-If a balanced server is considered - that is a server where the fuzzy function shows that the server is well balanced and neither under-loaded, nor overloaded then both the amount of pheromone and the wait time of the ant change. Define $T_{b}$ as the time for the ant to wait at a balanced server and $\tau_{b}$ as the amount of pheromone deposited at a balanced server. Both $T_{b}$ and $\tau_{b}$ are defined in terms of the fuzzy function, where $T_{b} = T_{minwait} / (1 - p)$ and $\tau_{b} = \tau_{max} * (1 - p)$
+If a balanced server is considered - that is a server where the control function shows that the server is well balanced and neither under-loaded, nor overloaded then both the amount of pheromone and the wait time of the ant change. Define $T_{b}$ as the time for the ant to wait at a balanced server and $\tau_{b}$ as the amount of pheromone deposited at a balanced server. Both $T_{b}$ and $\tau_{b}$ are defined in terms of the control function, where $T_{b} = T_{minwait} / (1 - p)$ and $\tau_{b} = \tau_{max} * (1 - p)$
 
 \begin{equation}
 \begin{aligned}
@@ -310,21 +304,51 @@ p^{t}_{n} &= \frac{t * \rho}{T_{decay}} * -0.96
 
 This equation means that the pheromone rate at the node will decrease by $\rho * -0.96$ every decay period.
 
-\subsection{Cluster optimization: Ant house hunting}
+Once enough of the ants discover that either the minimum or maximum threshold is breached, the cloud size optimization self-organizing algorithm triggers.
 
-The ant house hunting algorithm can be used in order to optimize the number of servers in the cloud by having ants search for the optimal number of servers which should be up in the cloud. This algorithm works by having each ant search for a new nest, where a nest is represented by a new optimum number of servers in the cloud. The algorithm assumes that there is a home nest where the ants can meet after searching for a new nest. Once all the ants have agreed on the same optimum value, the servers are added or removed as desired and all ants are morphed back into food foraging ants for the ACO algorithm. \cite{selforg:antreloc}
+\subsection{Cloud size optimization: Ant house hunting}
 
-When an ant morphs into a house hunting ant it initializes itself with a possible solution for the new size of the cloud. These possible solutions are computed as permutations of the current size of the cloud as known by the server the ant is at. If the ant was morphed because of lack of pheromone, then the ant generates a random value which would represent the number of servers to be added. Each random value is proportional to the size of the cloud and the pheromone level across the last $N$ servers known by the ant. For example, if the cloud contains only 2 servers, then the ant is initialized with a random value between 1 and 2. However, if the cloud contains 100 servers, then the ant would be initialized with a random values, which is defined as:
+The ant house hunting algorithm is inspired by the behaviour ant colonies use in order to reach consensus decisions in the case of relocating the nest as in \cite{selforg:antreloc} and \cite{selforg:antreloc2-Distributed House-Hunting in Ant Colonies Mohsen Ghaffar}. Ants use a complex, distributed approach to find a new nest which involves some ants searching for a new nest, scout ants communicating with each other about the suitability of a discovered nest, recruitment of other scout ants to a discovered nest, and finally a majority of ants agreeing on a new nest and moving the ant colony to the new nest.
+
+Initially, when the nest is in danger of being destroyed ants start searching for a new nest where the colony can relocate. In this phase, scouting ants leave the nest and search for a new location for the colony to relocate to. Once a scout finds a suitable location, it evaluates the location based on various factors and then returns to the home nest. Once a scout ant is satisfied with the new nest it goes back to the home nest and starts recruiting other ants to its chosen nest. Ants then start doing tandem runs where one ant leads another. Upon arriving at a new nest, a recruited ant evaluates the new nest and then starts doing tandem runs if the new nest is acceptable. At this point there are many possible nests and the ants must reach a consensus as to which nest will be the new home. One approach that ants are assumed to use is that of quorum threshold \cite{selforg:ant-quorum}. When ants reach the home nest they check if a quorum has been reached and if yes, they start to move the entire ant colony to the new nest.
+
+\subsection{Model for Cloud size optimization}
+
+Based on the above natural process, a self-organizing system can be developed in order to optimize the number of servers in the cloud by having an ant colony search for the optimal number of servers which should be up in the cloud at a given time. This algorithm works by having each ant in the ant colony search for a new nest, where a nest is represented by a new optimum number of servers in the cloud. The ants are the same ants for the ACO algorithm. When the SLA breach is predicted the ants morph to house hunting ants and start to look for a new home. The algorithm assumes that there is a home nest where the ants can meet after searching for a new nest and exchange information. Once all the ants have agreed on the same optimum value, the servers are added or removed as desired and all ants are morphed back into food foraging ants for the ACO algorithm.
+
+The model for optimizing the size of the cloud is composed of three components:
+
+\begin{enumerate}
+	\item Nest candidates - each nest candidate represents a possible solution in term of the number of servers that should be up in the server
+	\item House hunting ants - ants are simple agents which search for a new home nest
+	\item Mathematical model - this is the model which represents the viability of a nest from the point of view of an ant.
+\end{enumerate}
+
+\subsection{Nest candidates}
+
+For each ant that morphs into a house hunting ant a new nest is created. The nest is initialized with a value representing the number of servers which should be up in the cloud if the nest is selected as the new home. These possible solutions are computed as permutations of the current size of the cloud as known by ant which will have the nest as its first candidate. If the ant was morphed because of lack of pheromone, then a random value is generated which represents the number of servers to be added. Each random value is proportional to the size of the cloud and the pheromone level across the last $N$ servers known by the ant. For example, if the cloud contains 100 servers, then the ant would be initialized with a random values, which is defined as:
 
 \begin{equation}
-ServerCount_{add} = 1 + rand * N / (p_{ant})
+ServerCount_{add} = \frac{N}{2} * rand + \frac{N}{2} * \frac{Pt_{max} - p_{ant}}{Pt_{max}}
 \end{equation}
 
-such that the lower the pheromone value, the higher the probability of more servers being added. The random value has the effect of generating multiple possible solutions across different ants.
+where $rand$ is a random value between 0 and 1 and $p_{ant}$ is the average pheromone level seen by the ant across the last $n$ servers it went to. The pheromone is used as a scaling factor such that the lower the pheromone value, the higher the probability of more servers being added. The random value has the effect of generating multiple possible solutions across different ants.
 
-If however the ant was morphed because of too much pheromone, then it does a similar initialization, but in this case it randomly chooses $X$ servers and hides them from its knowledge of the cloud. The servers are still in the ant's history but it does not consider them for optimization calculations. Each ant will create a different such permutation of servers which are hidden.
+If however the ant was morphed because of too much pheromone, then the nest does a similar initialization where it computes the number of servers to remove as:
 
-The ant house hunting algorithm is performed in rounds and ants can be in one of four states:
+\begin{equation}
+ServerCount_{remove} = \frac{N}{2} * rand + \frac{N}{2} * \frac{p_{ant} - Pt_{max}}{Pt_{max}}
+\end{equation}
+
+Similar to the add case, the higher the pheromone level compared to the maximum threshold the more servers will be removed from the cloud.
+
+\subsection{Self-organizing agent: House hunting ant}
+
+In order for an ant to determine the viability of a nest, the ant will check the number of servers to add or remove and simulate what effect that will have on the ants pheromone levels. If the cloud should increase in size, then the ant replaces a proportional number of servers in its history with empty servers and then recalculate the average pheromone across those servers. If the cloud should decrease in size, then the ant removes a proportional number of servers in its history and then redistributes the pheromone across the remaining servers.
+
+For example, if the ant has in its history 10 servers and the nest has a desired server value of 15, then the ant will hide 3 of its servers and replace them with 3 servers with medium pheromone level and recalculate the average pheromone across the servers. If however the ant has in its history 10 servers and the nest has a desired server value of 7, then the ant will hide 3 of its servers and redistribute the pheromone from those 3 servers on the remaining 7 levels.
+
+The house hunting algorithm is performed in rounds and ants can be in one of four states:
 
 \begin{enumerate}
 	\item Search - This is the initial state of ants which search for a new nest
@@ -342,16 +366,20 @@ The state diagram for the ants can be described as in Figure \ref{fig:anthousehu
 	\label{fig:anthousehuntingstate}
 \end{figure}
 
-In the first round all house hunting ants search for a new nest by searching their solution space. This is achieved by having each ant choose one solution and simulating its effect on the pheromone level. If the ant is a server adder then the ant simulates that the $ServerCount_{add}$ servers are up and with no load. It picks $K$ servers from the list of the last $N$ servers it has visited and hides them, and replaces them with servers with no load. It then uses this information in order to simulate the pheromone level. If the ant is a subtractor, it hides $K$ servers where $K$ is defined as part of its random solution and simulates the effect this would have on its pheromone level. If the simulated result's performance is under a given threshold, then the ant goes into the passive state, otherwise it goes into the active state.
+In the first round all house hunting ants initialize a nest and go to it. The ants then simulate the performance of the solution as described previously. If the simulated result's performance is under a given threshold, then the ant goes into the passive state, otherwise it goes into the active state.
 
-In the second round, all ants return home and active ants try to recruit other ants at the home nest. Passive ants can not be recruited until the final round when all ants go to the single remaining nest. Active ants recruit randomly from the other active ants at the home nest by choosing another ant to recruit and bring it to it's committed nest. In order to ensure no conflicts between recruiting ants, the ants recruit iteratively and an ant which was already recruited does not recruit someone else. Once an ants recruits another ant, then the two ants go together to the nest of the recruiting ant.
+In the second round, all ants return to the home nest and active ants try to recruit other ants at the home nest. Passive ants can not be recruited until the final round when all ants go to the single remaining nest. Active ants recruit randomly from the other active ants at the home nest by choosing another ant to recruit and bring it to it's committed nest. In order to ensure no conflicts between recruiting ants, the ants recruit iteratively and an ant which was already recruited does not recruit someone else. This recruitment is biased by the perceived suitability of the nest by the ants, such that better nests are given priority. The bias is achieved by sorting the ants by the perceived viability and then randomly choosing a recruiter ant such that ants with better suitability have a higher chance of being recruiters and ants with lower viability have a higher chance of being recruited. This is achieved using the following formula, where the probability of an ant to recruit is defined as the viability of the ant's chosen nest divided by the sum of all the ant's chosen nests.
 
-When reaching a new nest, active ants count the number of ants at the nest and check if the nest they reached is the same as the previous nest they went to. Based on the number of ants and the nest there are three cases:
+\begin{equation}
+p_{recruit} = ant_{viability} / \sum\limits_{i=1}^n ant_{viability}
+\end{equation}
+
+Once an ants recruits another ant the two ants go together to the nest of the recruiting ant. When reaching a new nest, active ants count the number of ants at the nest and check if the nest they reached is the same as the previous nest they went to. Based on the number of ants and the nest there are three cases:
 
 \begin{enumerate}
-	\item If the nest is the same nest that the ant went to before and the number of ants has increased or remained the same then the nest is still a possible solution so the ant updates the count and waits an extra round at the nest. After waiting a round, the ant checks if the number of ants at the home nest is the same as that at it's current nest. If they are the same then the ant goes to the final state, new servers are added or removed and all ants morph back to ACO ants.
-	\item If the nest is the same nest that the ant went to before and the number of ants has decreased then the ant becomes passive because the nest is in the process of being dropped out, and returns home in the same round that active ants wait at the new nest.
-	\item If the nest is different then the nest the ant was committed to then the ant waits a round and then it checks to see if the number of ants at it's new nest has decreased or not. If the number has decreased, then this nest is dropping out as the ants already committed to it have gone to the home nest and the ant becomes passive. Otherwise, the ant commits to it's new nest and goes home to recruit other ants.
+	\item If the nest is the same nest that the ant went to before and the number of ants has increased or remained the same then the nest is still a possible solution so the ant updates the count and waits an extra round at the nest. After waiting a round, the ant checks if the number of ants at the home nest is the same as that at its current nest. If they are the same then the ant goes to the final state, new servers are added or removed and all ants morph back to ACO ants.
+	\item If the nest is the same nest that the ant went to before and the number of ants has decreased then the ant becomes passive because the nest is in the process of being dropped out. The ant returns home in the same round that active ants wait at the new nest.
+	\item If the nest is different then the nest the ant was committed to then the ant waits a round and then it checks to see if the number of ants at its new nest has decreased or not. If the number has decreased, then this nest is dropping out as the ants already committed to it have gone to the home nest and the ant becomes passive. Otherwise, the ant commits to its new nest and goes home to recruit other ants.
 \end{enumerate}
 
 The above algorithm can be described as follows in pseudo-code in Figure \ref{ant:pseudocodeHouseHunting}. $R_{x}$ represents round x.
@@ -391,6 +419,10 @@ The above algorithm can be described as follows in pseudo-code in Figure \ref{an
 \end{algorithmic}
 \caption{Ant House Hunting Pseudocode}\label{ant:pseudocodeHouseHunting}
 \end{algorithm}
+
+\subsection{Mathematical model}
+
+
 
 \section{Self-organizing algorithm conclusions}
 
