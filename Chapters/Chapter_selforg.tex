@@ -420,16 +420,62 @@ The above algorithm can be described as follows in pseudo-code in Figure \ref{an
 \caption{Ant House Hunting Pseudocode}\label{ant:pseudocodeHouseHunting}
 \end{algorithm}
 
-\subsection{Mathematical model}
+\subsection{Mathematical model: nest viability}
 
+In order to determine if a nest should be considered as a solution ants must determine the viability of the nest. Because it is impossible for ants to predict how the user requests would be processed by more/less servers the ants use a heuristic to approximate the viability of each solution. It is important to note that due to each ant having a different memory of servers it has recently visited, different ants will see the same nest as having a different viability score.
 
+There are two cases to consider - one when a cloud is over-loaded and servers should be added, and one where the cloud is under-loaded and servers should be removed.
+
+\subsubsection{Over-loaded cloud}
+
+In the case of an over-loaded cloud, each of the nests will have its solution contain more servers than the count of servers known by each ant. As such in order to determine the viability of the nest, the ant needs to simulate how a cloud with the extra servers would behave. The ant only has a short memory of its last $x$ visited servers and the amount of pheromone at these servers when it visited them. Because of this, the ant assumes that it would have visited the new servers with equal probability, so it replaces $y$ servers in its history with servers with optimal pheromone level, where the optimal pheromone level is defined as:
+
+\begin{equation}
+	p_{opt} = \frac{Pt_{max} + Pt_{min}}{2}
+\end{equation}
+
+and 
+
+\begin{equation}
+	y = x * \frac{newServerCount - cloudSize}{newServerCount}
+\end{equation}
+
+As such, the ant computes the average pheromone level across the last $x$ servers it would have visited as:
+
+\begin{equation}
+	p_{averageScaled} = \frac{y * p_{opt} + \sum\limits_{i=y+1}^x p_{i}}{x}
+\end{equation}
+
+Finally, the viability of the nest is defined as:
+
+\begin{equation}
+	viability = 1 - \frac{\left|p_{averageScaled} - p_{opt}\right|}{p_{opt}}
+\end{equation}
+
+With this approach, the ant simulates how the system would behave if it had $y$ extra servers taking some of the load from the existing servers. It then computes the viability based on how close the simulated pheromone is to the optimal pheromone.
+
+\subsubsection{Under-loaded cloud}
+
+In the case of an under-loaded cloud, each of the nests will have its solution contain less servers than the count of servers known by each ant. As such in order to determine the viability of the nest, the ant needs to simulate how a cloud with the lower count of servers would behave. The ant computes a number of servers $y$ in its history which should be removed as:
+
+\begin{equation}
+	y = x * \frac{cloudSize - newServerCount}{cloudSize}
+\end{equation}
+
+and then simulates the average pheromone for the cloud as:
+
+\begin{equation}
+	p_{averageScaled} = \frac{\sum\limits_{i=y+1}^x p_{i}}{x}
+\end{equation}
+
+The viability of the nest is calculated as in the case of the overloaded cloud. With this approach, the ant simulates how the system would behave if it had $y$ less servers and the remaining servers are taking the load from the removed servers. The viability is computed based on how close the simulated pheromone is to the optimal pheromone.
 
 \section{Self-organizing algorithm conclusions}
 
-The proposed approach for the self-optimizing control of the geographically distributed multimedia cloud makes use of two self-organizing algorithms. The first algorithm is used in order to detect breaches of SLA before they happen such that proactive measures can be taken. The second self-organizing algorithm finds the optimal count of servers which should be running in the cloud.
+The proposed approach for the self-optimizing control of cloud resources makes use of two self-organizing algorithms. The first algorithm is used in order to detect breaches of SLA before they happen such that proactive measures can be taken. The second self-organizing algorithm finds the optimal count of servers which should be running in the cloud.
 
-The thesis uses the ACO algorithm to detect possible breaches of SLA by having ants continously move through the network and measure the load on the network of servers. This is a novel approach as previous reasearch has only focused on using the ACO to optimize various problems and not for detection of possible problems. The proposed approach ensures that the detection of SLA breaches can be done ahead of the actual breach while at the same time being fully scalabe as the self-organizing algorithm scales with the number of servers.
+The thesis uses the ACO algorithm to detect possible breaches of SLA by having ants continuously move through the network and measure the load on the network of servers. This is a novel approach as previous research has only focused on using the ACO to optimize various problems and not for detection of possible problems. The proposed approach ensures that the detection of SLA breaches can be done ahead of the actual breach while at the same time being fully scalable as the self-organizing algorithm scales with the number of servers.
 
 The second algorithm which optimizes the number of servers in the cloud makes use of a different self-organizing approach also inspired by the behaviour of ants. This algorithm is also novel as previous research into the house hunting algorithm was only used as a way to model the behaviour of ants and not for problem optimization.
 
-The following chapter will introduce the test bed used to test the algorithms and also present results for the implementation of the self-optimizing self-organizing geographically distributed media cloud.
+The following chapter will introduce the test bed and simulation environment used to test the algorithms and also present results for the implementation of the self-optimizing self-organizing cloud.
