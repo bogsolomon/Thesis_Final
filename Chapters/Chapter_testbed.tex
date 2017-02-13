@@ -262,10 +262,73 @@ Looking at tests with the same number of sessions and streams but different numb
 
 If tests with similar numbers of outgoing streams are compared, it can be noticed that as the number of total users connected to each of the servers increases, the performance decreases. This however, does not apply just based on number of users connected. For example, comparing the results of tests with 30 outgoing streams, the worst result is shown by the 1/2/1 test which also has the most users connected (62 users), while the best result is shown by the test 1/1/2 which has 16 users connected. Tests for 1/1/1, 1/2/2 and 1/3/3, have similar numbers of users connected - 31 users, 32 users and 33 users respectively. However, 1/1/1 has much better results than 1/2/2 which has better results than 1/3/3. This could be explained by the fact that the tests with worse results have more incoming streams.
 
-As such, it can be assumed that median latency is a function of number of users connected, and the number of incoming streams.
+As such, it can be assumed that median latency is a function of number of users connected, and the number of incoming streams. This information is used in order to build a fuzzy system to control the cloud of collaborative servers.
+
+\subsection{Collaborative cloud control system}
+
+For the purpose of controlling the collaborative cloud, each server has its own control loop, similar to the one developed in \cite{bogdan:seams07}. The architecture can be seen in Figure \ref{fig:selfopt-archi}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{Self-optimizingControlLoop_full}
+	\caption{Self-Optimizing Control Loop Architecture}
+	\label{fig:selfopt-archi}
+\end{figure}
+
+Each collaborative server can be seen as having one perturbation signal which is the arrival of requests from clients connected to the server. Some requests, like video streaming, are more demanding on the server than others. As requests are processed, the CPU usage and response time of the server will change. More requests or more demanding requests will lead to higher CPU usage and an increase in response time. As the number of requests decreases, the CPU usage and response time will also decrease. Based on the measured sensor data, the control loop uses a fuzzy model and estimator to predict the response time for the next sampling period. This prediction is used in order to decide if the server should accept connections or not. The block diagram can be mapped to the eight component based architecture through the following steps:
+
+\begin{enumerate}
+	\item Implement a sensor which measures the desired data from the media server. The measured data includes:
+	\begin{enumerate}
+		\item CPU usage
+		\item Number of connected clients
+		\item Number of collaborative rooms
+		\item Number of clients connected to all media servers in the cloud
+		\item Network latency
+		\item Bandwidth up/down
+		\item Number of streams incoming/outgoing from server
+	\end{enumerate}
+	\item Add a filter which computes the numbers of packets in and out from the bandwidth up/down
+	\item Add a fuzzy model which calculates the confidence that the server is overloaded. The fuzzy model computes two fuzzy functions:
+	\begin{enumerate}
+		\item Compute confidence1 based on number of clients, packets out, packets in and number of incoming streams.
+		\item Compute confidence2 based on packets in and CPU usage
+		\item Take the maximum value of the two confidences
+	\end{enumerate}
+	\item Add an estimator which compares the confidence from the model with two given thresholds. If the confidence is above the higher threshold increment a counter of how many times the system was above the higher threshold. Similarly if the confidence is bellow the threshold increment a counter of how many time the system was bellow the lower threshold.
+	\item Add a decision maker which uses the count of how many times the system was above/bellow the thresholds in the estimator to decide if the server should accept or reject connections. If the server is above the higher threshold for more than a given count, then the server stops accepting new clients. If the server is bellow the lower threshold for a given amount of time and is not accepting clients, then it starts accepting clients.
+	\item Add an actuator which communicates with the cloud load balancer. If the server should not accept connections then the actuator sends a message to the load balancer that it should stop redirecting new clients to it. Conversely, if the server should start accepting clients again, then it sends a message that the load balancer can start redirecting clients to it.
+	\item The coordinator simply coordinates the control loop and passes messages between model, controller, decision maker and actuator.
+\end{enumerate}
+
+The control system for each media server is an application separated from the media server and deployed in a separate container from the media server. It can connect to the media server to retrieve sensor data but has no other interactions with the media server. The control system can also act on behalf of the media server to ask the load balancer to redirect or stop redirecting new clients to the media server. The overall control architecture looks as Figure \ref{fig:control-containers}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{containers_control}
+	\caption{Control System}
+	\label{fig:control-containers}
+\end{figure}
+
+The results of the fuzzy control system are also fed as an input to the ACO algorithm in order to predict when an SLA breach will happen and serves need to be added or removed from the cloud.
 
 \section{Simulation environment}
 
-The second set of tests for the self-organizing management of cloud resources was a simulation developed on top of the CloudSim and CloudSimEx systems. CloudSim is a simulation environment for clouds in which various tests can be run - for example the placement of tasks in a cloud. CloudSim defines hosts which can run virtual machines in them and then virtual machines in terms of million instructions per second (mips) and workloads are similarly defined in term of mips. CloudSim also allows for defining the RAM amount a host/virtual machine have and the RAM amount a workload would need at a given time. The concept of mips make it complicated to define workloads that would represent real world behaviours. CloudSim workloads are defined as cloudlets, where a cloudlet represents 
+The second set of performance tests for the self-organizing management of cloud resources presented in this thesis was a simulation developed on top of the CloudSim and CloudSimEx systems. CloudSim is a framework for modelling and simulating cloud systems in which various tests can be run - for example the placement of tasks in a cloud or the performance of a cloud system. CloudSim allows users to define datacenters which are composed of hosts which can run virtual machines and virtual machines which run on top of the hosts. Both hosts and virtual machines are defined in terms of million instructions per second (MIPS) and memory available. Once a datacenter is defined, a workload can be defined as well to be executed in the datacenter. CloudSim workloads are called cloudlets - a cloudlet represents a user task and defines how many million instructions (MI) the task takes as well as how much memory the task needs. As such a cloudlet's execution time will depend on its' lifetime in MIs and how many MIPS the VM the cloudlet is allocated to has. The usage of MIPS and MI to represent loads and available resources make it complicated to define workloads that would represent real world behaviours.
 
-CloudSimEx extends CloudSim by adding the concept of web sessions, where internally a web session maps to a certain amount of
+CloudSimEx extends CloudSim by adding the concept of web sessions. Internally a web session is composed of a number of web cloudlets, where each web cloudlet has a small RAM and MIPS requirements and later web cloudlets in a web session can not be completed until all previous web cloudlets have completed. Web sessions also have the property of targeting both application server VMs and database VMs, with the web session alternating cloudlets running on either application server or database server. Furthermore, CloudSimEx also adds the concept of scaling policies which can be applied on a cloud. A scaling policy adds or removes servers to/from the cloud when the policy determines that some conditions are breached. A basic policy is implemented in CloudSimEx which scales the cloud when the CPU usage passes certain thresholds and also includes a quiet time after a scaling action has been performed. The basic policy implements an interface which makes it easy to add other scaling policies. 
+
+Because CloudSim and CloudSimEx only include CPU usage and memory usage as measurable metrics, the simulation of the self-organizing system uses the CPU usage as an input for the ACO algorithm to determine how the pheromone should be updated. In order to run the self-organizing system in this thesis and compare it to existing results, a number of workloads which are predefined in CloudSimEx are used.
+
+The architecture of the simulation framework is presented in Figure \ref{fig:simulation-design}.
+
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{simulation_design}
+	\caption{Simulation Framework System}
+	\label{fig:simulation-design}
+\end{figure}
+
+%description of 
+
