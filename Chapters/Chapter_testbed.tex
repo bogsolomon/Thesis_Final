@@ -330,5 +330,31 @@ The architecture of the simulation framework is presented in Figure \ref{fig:sim
 	\label{fig:simulation-design}
 \end{figure}
 
-%description of 
+%description of diagram
 
+The simulation runs three different scaling policies for comparison. The first scaling policy used is the simple scaling policy provided by CloudSimEx. This scaling policy measures the average CPU usage of the cloud and when predefined thresholds are breached it either adds one server if the upper threshold is breached or removes one server if the lower threshold is breached. The policy also includes a quiet time, which is a period of time after an action was taken during which no other action will be taken. For the purpose of these tests the thresholds for the simple scaling policy are set to:
+
+\begin{description}
+	\item[Upper threshold] is set to 80\% average CPU utilization across the cloud
+	\item[Lower threshold] is set to 10\% average CPU utilization across the cloud
+	\item[Quiet time] is set to 150s during which no other action will be taken
+\end{description}
+
+The values chosen match the default values for the Amazon EC2 auto scaling policy.
+
+The second policy is based on the predictive ACO algorithm presented in this thesis but without the house hunting algorithm to determine the number of instances to scale up or down. The policy uses the ACO algorithm to determine when instances should be added or removed. When a decision is taken that servers need to be added or removed a single server instance is added or removed at one time. The ACO policy does not need quiet time defined as it inherently includes quiet time due to the fact that it takes time for the pheromone to build up or decrease. For the purpose of these simulations the ACO algorithm runs with the following parameters:
+
+\begin{description}
+	\item[Decay amount] is set to 1
+	\item[Decay period] is set to 15s
+	\item[Minimum ant wait time at an under-loaded node] is set to 1s
+	\item[Maximum ant pheromone added at an under-loaded node] is set to 4
+	\item[Ant memory size] is set to 5
+	\item[Pheromone level for triggering server removal] is set to 100
+	\item[Pheromone level for triggering server addition] is set to 25
+	\item[CPU is considered to be balanced] if it is between 45\% and 55\% utilization
+\end{description}
+
+The third tested policy contains both the ACO algorithm for prediction of SLA breaches and the house hunting algorithm for the optimization of the cloud size when a breach is detected. The tests are run with the same parameters as the second policy.
+
+Chapter \ref{Chapter_performance} will present the results for both the test-bed and the simulation.
