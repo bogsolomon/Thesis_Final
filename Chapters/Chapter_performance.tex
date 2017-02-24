@@ -4,9 +4,9 @@
 
 \section{Test-bed Autonomic Computing Performance Tests}
 
-This section will present the performance of the self-organizing, self-optimizing autonomic system presented in this thesis. The system will be run on top of the test bed under various loads in order to determine how the system behaves when being overloaded or underloaded.
+This section will present the performance of the self-organizing, self-optimizing autonomic system presented in this thesis when run on top of the test bed under various loads. The goal of this section is to determine how the system behaves when being overloaded or underloaded.
 
-The tests are split such that the same scenario is tested with various numbers of starting servers in the cluster and various loads such that up scaling, down scaling and no scaling are all tested. The tests are run a bit longer than 30 minutes, due to the fact that there is a ramp up at the beginning of the test while clients join, sessions are created and clients start streaming.
+The tests are split such that the same scenario is tested with various numbers of starting servers in the cluster and various loads such that up scaling, down scaling and no scaling are all tested. The tests are run slightly longer than 30 minutes, due to the fact that there is a ramp up at the beginning of the test while clients join, sessions are created and clients start streaming.
 
 \subsection{Single server start}
 
@@ -740,6 +740,11 @@ The first SLA breach results in two servers being added to the cloud. This is be
 	\caption{Over loaded cloud - Ant location}
 	\label{fig:3serv-antloc-high}
 \end{figure}
+
+\section{Simulation Autonomic Computing Performance Tests}
+
+The second set of tests for the performance of the self-organizing system presented in this thesis were run on top of the simulation environment presented in the previous chapter. A number of tests were run, with different loads
+
 
 \section{Self-organizing self-optimization test conclusions}
 
