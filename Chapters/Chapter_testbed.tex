@@ -268,13 +268,6 @@ As such, it can be assumed that median latency is a function of number of users 
 
 For the purpose of controlling the collaborative cloud, each server has its own control loop, similar to the one developed in \cite{bogdan:seams07}. The architecture can be seen in Figure \ref{fig:selfopt-archi}.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{Self-optimizingControlLoop_full}
-	\caption{Self-Optimizing Control Loop Architecture}
-	\label{fig:selfopt-archi}
-\end{figure}
-
 Each collaborative server can be seen as having one perturbation signal which is the arrival of requests from clients connected to the server. Some requests, like video streaming, are more demanding on the server than others. As requests are processed, the CPU usage and response time of the server will change. More requests or more demanding requests will lead to higher CPU usage and an increase in response time. As the number of requests decreases, the CPU usage and response time will also decrease. Based on the measured sensor data, the control loop uses a fuzzy model and estimator to predict the response time for the next sampling period. This prediction is used in order to decide if the server should accept connections or not. The block diagram can be mapped to the eight component based architecture through the following steps:
 
 \begin{enumerate}
