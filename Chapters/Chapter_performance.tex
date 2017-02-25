@@ -512,6 +512,7 @@ The workload for this test starts with a mean of 60 sessions per hour and a stan
 	\label{fig:sim1-workload}
 \end{figure}
 
+Figures \ref{fig:sim1-basestats}, \ref{fig:sim1-antSimplestats} and \ref{fig:sim1-antHHstats} show the statistical results for the simulation runs. The results are averaged per hour and across the 5 runs for each auto-scaling algorithm. The graphs include average CPU usage as well as average number of sessions per server and average provisioned servers. Looking at the three graphs, it can be seen that the simple ant auto scaling algorithm obtains better CPU utilization than the simple auto scaling approach, and better than the house hunting algorithm also. At the same time, the simple ant auto scaling algorithm achieves this, while maintaining the server count more stable than the simple auto scaling algorithm.
 
 \begin{figure}
 	\centering
@@ -520,14 +521,12 @@ The workload for this test starts with a mean of 60 sessions per hour and a stan
 	\label{fig:sim1-basestats}
 \end{figure}
 
-
 \begin{figure}
 	\centering
 		\includegraphics[width=0.75\columnwidth]{results/sim1/sim1-antSimplestats.png}
 	\caption{Simulation - Simple ant autoscaling}
 	\label{fig:sim1-antSimplestats}
 \end{figure}
-
 
 \begin{figure}
 	\centering
@@ -536,7 +535,21 @@ The workload for this test starts with a mean of 60 sessions per hour and a stan
 	\label{fig:sim1-antHHstats}
 \end{figure}
 
+Similar results can be seen in Table \ref{table:sim1} which summarizes the tests. The simple scaling algorithm takes a lot more scale up and scale down actions than the two ant based algorithms. This is because as soon as the average utilization breaches the thresholds an action must be taken, while for the ant algorithms the detection is not triggered by a single drop or spike in utilization. At the same time, the simple ant scaling algorithm has a much shorter time when the cloud is over provisioned (too many servers for the load) compared to the simple scaling algorithm, and longer periods when the cloud is under high usage with over 90\% and 95\% CPU usage. The house hunting algorithm performs worse than the simple ant algorithm for this test, as it tends to over provision the cloud when a breach is predicted by adding too many servers. This can be seen, as it has higher scale up/down counts and also higher over provisioned times.
 
+\begin{table}
+\caption{Low workload simulation results}
+\label{table:sim1}
+\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+\everyrow{\hline}
+\hline
+Scaling Algorithm & Scale Up Count & Scale Down Count & Over Provisioned - 10\% (s) & Over Provisioned - 20\% (s) & High usage - 95\% (s) & High usage - 90\% (s) \\
+\taburowcolors 2{Gray!20..LimeGreen!50}
+Simple scaling & 755 & 762 & 12 & 163 & 3 & 8 \\
+Simple ant scaling & 128 & 132 & 9 & 53 & 50 & 79 \\
+House hunting scaling & 223 & 339 & 101 & 377 & 37 & 64 \\
+\end{tabu}
+\end{table}
 
 \section{Self-organizing self-optimization test conclusions}
 
