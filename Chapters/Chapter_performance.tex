@@ -551,6 +551,66 @@ House hunting scaling & 223 & 339 & 101 & 377 & 37 & 64 \\
 \end{tabu}
 \end{table}
 
+\subsection{High workload, high number of VMs}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-workload.png}
+	\caption{Simulation - low workload}
+	\label{fig:sim2-workload}
+\end{figure}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-basestats.png}
+	\caption{Simulation - Simple autoscaling}
+	\label{fig:sim2-basestats}
+\end{figure}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-antSimplestats.png}
+	\caption{Simulation - Simple ant autoscaling}
+	\label{fig:sim2-antSimplestats}
+\end{figure}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-antHHstats.png}
+	\caption{Simulation - House hunting ant autoscaling}
+	\label{fig:sim2-antHHstats}
+\end{figure}
+
+\subsection{Very high workload, very high number of VMs}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-workload.png}
+	\caption{Simulation - low workload}
+	\label{fig:sim3-workload}
+\end{figure}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-basestats.png}
+	\caption{Simulation - Simple autoscaling}
+	\label{fig:sim3-basestats}
+\end{figure}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-antSimplestats.png}
+	\caption{Simulation - Simple ant autoscaling}
+	\label{fig:sim3-antSimplestats}
+\end{figure}
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-antHHstats.png}
+	\caption{Simulation - House hunting ant autoscaling}
+	\label{fig:sim3-antHHstats}
+\end{figure}
+
 \section{Self-organizing self-optimization test conclusions}
 
 The performance tests show that the system behaves as desired and that the ACO algorithm properly detects a breach of SLA when the cloud is under loaded or over loaded while the house hunting algorithm can determine the number of servers added or removed. Due to the randomness which exists inside the house hunting algorithm it is possible to overshoot or undershoot the correct number of servers, however this is corrected quickly after another SLA breach is detected.
