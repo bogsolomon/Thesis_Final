@@ -119,6 +119,12 @@ Based on the table, the ant computes the probability of visiting each server as:
 P_s = (t_s / \sum_{i=1}^{N} t_i + p_{s} / \sum_{i=1}^{N} p_i) / 2
 \end{equation}
 
+where
+
+\begin{equation}
+i \in \left\{\text{servers known by current server the ant is at} \right\}
+\end{equation}
+
 where $P_s$ is the probability of visiting server $s$, $t_s$ is the time since it has visited server $s$ last time and $p_{s}$ is the pheromone at server $s$. These probabilities are computed only on the servers known as being up by the server the ant is at. The server the ant is currently at has to be excluded from the calculations, and it's visit probability will be 0. Assuming also that Server 5, which is the server the ant is at currently does not yet know about server 3. As such, the visit probability table looks as in Table \ref{tab:ant_prob}.
 
 \begin{table}
@@ -199,7 +205,7 @@ where $p_{N}$ is the pheromone at server $N$. Once the pheromone level of an ant
 The pheromone level at a single node is defined base don the previous section as:
 
 \begin{equation}
-p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau * (1 - p)) - \rho
+p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau_{i} * (1 - p)) - \rho
 \end{equation}
 
 where $p^{t}_{n}$ is the amount of pheromone at node $n$ at time $t$ where $t$ can be considered discrete in some time increment and $K$ is the amount of ants arriving at the node in the time frame between $t-1$ and $t$.

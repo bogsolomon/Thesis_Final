@@ -9,3 +9,17 @@ Under provisioned time - 0.7:829.4300518134716
 Under provisioned time - 0.8:231.60621761658038
 Under provisioned time - 0.9:87.35751295336794
 Under provisioned time - 0.95:43.2124352331607
+------------------------------------------------------------
+Over provisioned time:0.1 - 1044.0
+Over provisioned time:0.2 - 26255.993999999995
+Over provisioned time:0.3 - 40927.99199999999
+Over provisioned time:0.4 - 50503.99199999999
+Over provisioned time:0.5 - 58759.99199999999
+Under provisioned time:0.500001 - 108984.0
+Under provisioned time:0.6 - 78084.0
+Under provisioned time:0.7 - 32232.0
+Under provisioned time:0.8 - 8952.0
+Under provisioned time:0.9 - 3372.0000000000027
+Under provisioned time:0.95 - 1668.000000000003
+Single server time:120.0
+Avg servers:46.935763888888886

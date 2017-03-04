@@ -542,28 +542,28 @@ The simple scaling algorithm takes a lot more scale up and scale down actions th
 \begin{table}
 \caption{Low workload simulation results - utilization}
 \label{table:sim1}
-\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
 \everyrow{\hline}
 \hline
 Scaling Algorithm & Scale Up Count & Scale Down Count & Over Provisioned - 20\% (s) & Over Provisioned - 40\% (s) & High usage - 70\% (s) & High usage - 80\% (s) \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 755 & 762 & 163 & 841 & 78 & 27 \\
-Simple ant scaling & 128 & 132 & 53 & 253 & 407 & 186 \\
-House hunting scaling & 223 & 339 & 377 & 1079 & 287 & 152 \\
+Simple scaling & 755 & 762 & 7140 & 88423 & 3048 & 1080 \\
+Simple ant scaling & 128 & 132 & 2796 & 40104 & 16008 & 7260 \\
+House hunting scaling & 223 & 339 & 16656 & 53352 & 11184 & 5904 \\
 \end{tabu}
 \end{table}
 
 \begin{table}
 \caption{Low workload simulation results - delays}
 \label{table:sim1-delay}
-\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|}
 \everyrow{\hline}
 \hline
-Scaling Algorithm & Average Delay (s) & Maximum delay  \\
+Scaling Algorithm & Average Delay (s) & Maximum delay & Average Servers  \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 28.8 & 118.6 \\
-Simple ant scaling & 20.5 & 75.3 \\
-House hunting scaling & 115.4 & 574.3 \\
+Simple scaling & 28.8 & 118.6 & 3.35 \\
+Simple ant scaling & 20.5 & 75.3 & 3.49 \\
+House hunting scaling & 115.4 & 574.3 & 1.95 \\
 \end{tabu}
 \end{table}
 
@@ -571,7 +571,7 @@ House hunting scaling & 115.4 & 574.3 \\
 
 The second test uses the same workload as the first test but scaled 5 times. With this scaling the simulation ends up requiring a large number of servers. The distribution of the sessions per hour can be seen in Figure \ref{fig:sim2-workload}.
 
-Figures \ref{fig:sim2-basestats}, \ref{fig:sim2-antSimplestats} and \ref{fig:sim2-antHHstats} show the statistical results for the simulation runs. The results are averaged per hour and across the 5 runs for each auto-scaling algorithm. Looking at the three graphs, it can be seen that the simple ant auto scaling algorithm and the simple auto scaling approach behave very similar. Both increase the number of servers as demand increases, and then once demand decreases they both decrease the number of servers in the cloud. Due to the fact that the two algorithms add servers one by one, they end up under provisioning the cloud when demand is high and over provisioning when demand goes low. The house hunting algorithm behaves much better than the two simple scaling algorithms as it is able to keep up with the demand by adding more servers at one time and removing more servers at the same time. The same results can be seen in Table \ref{table:sim2}. The house hunting algorithm is able to achieve better server utilization - only 20 seconds of average CPU utilization under 20\% compared to more than 500s for the simple scaling algorithms, while performing less scale up/scale down actions. The delay results in table \ref{table:sim2-delay} are very similar for all 3 scaling algorithms with average delay at, or near 0 and very small maximum delays. In such a case, the house hunting algorithm behaves better as it takes less actions and uses less servers than the other two algorithms.
+Figures \ref{fig:sim2-basestats}, \ref{fig:sim2-antSimplestats} and \ref{fig:sim2-antHHstats} show the statistical results for the simulation runs. The results are averaged per hour and across the 5 runs for each auto-scaling algorithm. Looking at the three graphs, it can be seen that the simple ant auto scaling algorithm and the simple auto scaling approach behave very similar. Both increase the number of servers as demand increases, and then once demand decreases they both decrease the number of servers in the cloud. Due to the fact that the two algorithms add servers one by one, they end up under provisioning the cloud when demand is high and over provisioning when demand goes low. The house hunting algorithm behaves much better than the two simple scaling algorithms as it is able to keep up with the demand by adding more servers at one time and removing more servers at the same time. The same results can be seen in Table \ref{table:sim2}. The house hunting algorithm is able to achieve better server utilization - only 768 seconds of average CPU utilization under 20\% compared to more than 20000s for the simple scaling algorithms, while performing less scale up/scale down actions. The delay results in table \ref{table:sim2-delay} are very similar for all 3 scaling algorithms with average delay at, or near 0 and very small maximum delays. In such a case, the house hunting algorithm behaves better as it takes less actions and uses less servers than the simple scaling algorithm.
 
 \begin{figure}
 	\centering
@@ -604,28 +604,28 @@ Figures \ref{fig:sim2-basestats}, \ref{fig:sim2-antSimplestats} and \ref{fig:sim
 \begin{table}
 \caption{High workload simulation results}
 \label{table:sim2}
-\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
 \everyrow{\hline}
 \hline
 Scaling Algorithm & Scale Up Count & Scale Down Count & Over Provisioned - 20\% (s) & Over Provisioned - 40\% (s) & High usage - 70\% (s) & High usage - 80\% (s) \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 717 & 693 & 490 & 627 & 829 & 231 \\
-Simple ant scaling & 661 & 656 & 567 & 380 & 1521 & 1072 \\
-House hunting scaling & 332 & 253 & 20 & 844 & 911 & 481 \\
+Simple scaling & 717 & 693 & 26255 & 50503 & 8952 & 231 \\
+Simple ant scaling & 661 & 656 & 22241 & 42750 & 85873 & 62593 \\
+House hunting scaling & 332 & 253 & 768 & 32643 & 35419 & 18631 \\
 \end{tabu}
 \end{table}
 
 \begin{table}
 \caption{High workload simulation results - delays}
 \label{table:sim2-delay}
-\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|}
 \everyrow{\hline}
 \hline
-Scaling Algorithm & Average Delay (s) & Maximum delay  \\
+Scaling Algorithm & Average Delay (s) & Maximum delay & Average Servers  \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 0 & 14.1 \\
-Simple ant scaling & 1.1 & 15.3 \\
-House hunting scaling & 1.1 & 28.4 \\
+Simple scaling & 0 & 14.1 & 46.9 \\
+Simple ant scaling & 1.1 & 15.3 & 37.7 \\
+House hunting scaling & 1.1 & 28.4 & 40.9 \\
 \end{tabu}
 \end{table}
 
@@ -635,7 +635,7 @@ The final test uses a very high workload with an initial peak of 5000 sessions/h
 
 Figures \ref{fig:sim3-basestats}, \ref{fig:sim3-antSimplestats} and \ref{fig:sim3-antHHstats} show the statistical results for the simulation runs. The results are averaged per hour and across the 5 runs for each auto-scaling algorithm. Looking at the three graphs, the house hunting algorithm again performs the best, however the simple ant autoscaling algorithm performs worse than the simple autoscaling algorithm. Both simple autoscaling algorithms have trouble as the demand increases quickly, but the simple ant autoscaling can not answer quickly enough. This is due to the fact that there's a certain time needed for the pheromones to pass the trigger level, and after the trigger is passed only a single server can be added. This results in long periods when all the servers are overloaded and average CPU usage is 100\%. Compared to the two simple autoscaling algorithms, the house hunting algorithm behaves much better reaching the optimal number of servers quicker and maintaining this number of servers.
 
-The same results can be seen in Table \ref{table:sim3}. The house hunting algorithm is able to achieve better server utilization again - only 50 seconds of average CPU utilization under 20\% compared to more than 400s for the simple scaling algorithms, while performing less scale up/scale down actions.  The delay results in table \ref{table:sim3-delay} show the house hunting algorithm with slightly higher average delays than the other two algorithms, and much higher maximum delay. This can be explained by the fact that the other two algorithms overprovision - seen by the over provision metrics, while the house hunting algorithm underprovisions in a worst case.
+The same results can be seen in Table \ref{table:sim3}. The house hunting algorithm is able to achieve better server utilization again - only 2000 seconds of average CPU utilization under 20\% compared to more than 15000 and 46000s for the two simple scaling algorithms, while performing less scale up/scale down actions.  The delay results in table \ref{table:sim3-delay} show the house hunting algorithm with slightly higher average delays than the other two algorithms, and much higher maximum delay. This can be explained by the fact that the other two algorithms overprovision - seen by the over provision metrics, while the house hunting algorithm underprovisions in a worst case.
 
 \begin{figure}
 	\centering
@@ -668,28 +668,28 @@ The same results can be seen in Table \ref{table:sim3}. The house hunting algori
 \begin{table}
 \caption{Very high workload simulation results}
 \label{table:sim3}
-\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
 \everyrow{\hline}
 \hline
 Scaling Algorithm & Scale Up Count & Scale Down Count & Over Provisioned - 20\% (s) & Over Provisioned - 40\% (s) & High usage - 70\% (s) & High usage - 80\% (s) \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 1004 & 833 & 962 & 761 & 912 & 531 \\
-Simple ant scaling & 726 & 679 & 425 & 695 & 881 & 863 \\
-House hunting scaling & 354 & 287 & 50 & 866 & 833 & 568 \\
+Simple scaling & 1004 & 833 & 46339 & 86035 & 42768 & 20604 \\
+Simple ant scaling & 726 & 679 & 16412 & 54641 & 83245 & 76837 \\
+House hunting scaling & 354 & 287 & 1956 & 33864 & 32151 & 22080 \\
 \end{tabu}
 \end{table}
 
 \begin{table}
 \caption{High workload simulation results - delays}
 \label{table:sim3-delay}
-\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+\begin{tabu} to\linewidth{|X[c]|X[c]|X[c]|X[c]|}
 \everyrow{\hline}
 \hline
-Scaling Algorithm & Average Delay (s) & Maximum delay  \\
+Scaling Algorithm & Average Delay (s) & Maximum delay & Average Servers  \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 1 & 27.6 \\
-Simple ant scaling & 3.9 & 22.5 \\
-House hunting scaling & 10.7 & 192 \\
+Simple scaling & 1 & 27.6 & 70.6 \\
+Simple ant scaling & 3.9 & 22.5 & 43.2 \\
+House hunting scaling & 10.7 & 192 & 42.8 \\
 \end{tabu}
 \end{table}
 
