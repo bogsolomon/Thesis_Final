@@ -403,28 +403,22 @@ In recent years, a great deal of research has been undertaken in the area of aut
 
 As IT departments have become more pervasive and more important for each and every company, as well as to our daily lives, they have also become more complex. In today's world people obtain their news and alerts online, shop online as well as communicate with friends and family via social networking sites. The complexity of the IT infrastructure has lead however to a situation where it is nearly impossible for humans to continue to manage and maintain the IT resources in a good state. Failures of the IT infrastructure in a company can have disastrous consequences for the company or even for the economy. In a world that is as fast as the current one an IT failure can result in lost sales, loss of customers to competitors or even payment of damages depending on how critical the infrastructure is.
 
-Cloud computing exacerbates these issues by moving the IT infrastructure outside a company's premises. Where before each small enterprise would run its own small IT department, now large data centers provide IT services to multiple consumers and enterprises (SaaS, HaaS, IaaS). For the cloud providers, the ability to maintain the systems' service level agreements and prevent service outages is paramount since long period of failures can open them to large liabilities from their customers. At the same time, cloud computing provides the ability for companies to pay only for the required resources and to scale up or down as more resources are needed or as resources are no longer required. Due to this capability, a solution is needed for cloud computing users in order to intelligently decide when to request more servers and when to release used servers. From the point of view of cloud computing providers, a solution is needed in order to move server loads such that only the required resources are used for a certain demand via virtualization. Server virtualization also increases the complexity of managing the servers in data centers, since suddenly one single hardware server can be running tens of virtual machines, each with its own load and processing requirements. Ensuring that the appropriate number of virtual machines are deployed on a hardware platform, such that the hardware is neither underutilized, nor that the virtual machines starve each other for resources, is not a trivial administrative task. The issue becomes even more complex when the end user's location is taken into consideration. In order to achieve better response times and latency, it is preferable to offer services as close as possible to the end user. Such approaches can be seen in Content Delivery Networks (CDNs) \cite{akamai}, which cache web data in datacenters across the world in order to be closer to the end users. A similar approach is taken by Netflix in order to cache the most viewed shows and movies closer to the customers.
+Cloud computing exacerbates these issues by moving the IT infrastructure outside a company's premises. Where before each small enterprise would run its own small IT department, now large data centers provide IT services to multiple consumers and enterprises (SaaS, HaaS, IaaS). For the cloud providers, the ability to maintain the systems' service level agreements and prevent service outages is paramount since long period of failures can open them to large liabilities from their customers. At the same time, cloud computing provides the ability for companies to pay only for the required resources and to scale up or down as more resources are needed or as resources are no longer required.
 
 These are the problems that autonomic management systems attempt to solve. Autonomic computing systems are capable of self-managing by self-configuring, self-healing, self-optimizing and self-protecting, together known as self-CHOP. Such a system must be able to analyze itself at run time, determine its state, determine a desired state and then if necessary attempt to reach the desired state from the current state. Normally the desired state is a state that maintains the system's Service Level Agreement (SLA). A number of research directions and a corresponding number of projects have been developed to look at how to create such intelligent systems which can substitute human intervention with automatically generated operative commands. Various approaches have been taken to reach the desired system self-adaptation qualities. In terms of how the self-management behavior is reached two main architecture approaches have been used. In the first approach, a global controller is added to the system, which gathers data from the various components, performs some form of analysis on the data, and compares the analysis results with the desired goals. If the goals are breached by the predicted analysis, corrective actions are taken. Such approaches are seen in \cite{related:architecture:hierarch1}, \cite{related:model:lqm} and \cite{bogdan:seams07}. In the first type of approaches, a cluster of servers would (for example) have one controller which manages the entire cluster's adaptation. The second approach attempts to develop an autonomic system by developing small intelligent subsystems which achieve global self-adaptation through the interactions with other components. Such approaches can be seen in \cite{related:architecture:selflet} and \cite{related:architecture:unity}. In this second approach, each server in a cluster would have its own intelligence which achieves local adaptation. The communication between components is then used in order to reach global system adaptation. Such systems can be developed by looking at Self-Organizing systems, which are systems that are capable of reaching a desired state without the use of any central authority or plan.
 
 In this paper, a \textbf{Self-Organizing autonomic system} which self-manages a cloud of servers is introduced. The system architecture, system design and results obtained via simulations are presented. The self-managing function ensures that all the servers in the same data-center maintain the same response time and CPU usage. At the same time, the self-organizing system can add or remove servers as needed when load for the service increases or decreases.
 
-The rest of the paper is structured as follows. Section \ref{sec:selforganizingmodel} introduces the self-organizing model for the self-optimizing system. Section \ref{sec:testbed} introduces a simulation environment used to test the self-organizing algorithm. Section \ref{sec:results} presents some performance data from the test bed and simulation. Finally, Section \ref{sec:conclusion} reflects on the contributions of this paper and proposes topics for future research.
+The rest of the paper is structured as follows. Section \ref{sec:selforganizingmodel} introduces the self-organizing model for the self-optimizing system. Section \ref{sec:testbed} introduces a simulation environment used to test the self-organizing algorithm. Section \ref{sec:results} presents some performance data from the simulation. Finally, Section \ref{sec:conclusion} reflects on the contributions of this paper and proposes topics for future research.
 
 \section{Self-organizing Model}
 \label{sec:selforganizingmodel}
  
 Due to the wide variety in applications which are deployed and run on clouds, a generic self-organizing system for cloud resources must be able to accept different measured inputs from the managed cloud application and perform the management of the cloud properly such that SLA breaches are minimized. Load for a server can be represented by a simple metric like CPU usage or memory usage or a complex combination of the number of clients connected to the server, the number of sessions running on the server, and the number of video streams received by the server and multiplexed towards receiving clients in the case of complex applications like the one presented in \cite{bogdan:miles2012chapter}. Based on the application's perturbations as noticed through the server load, each server can decide if it should receive more clients or not, independent of any decision made by another server. On top of this mechanism for server self-organization with relation to accepting new clients, the system also needs an approach to determine when the cluster's SLA will be breached and take proactive action by adding or removing servers from the cluster.
 
-The reason to use a self-organizing systems for the adaptation is due to the intrinsic properties that self-organizing systems poses:
-\begin{enumerate}
-	\item Adaptable - the ability to deal with changes in the environment which were not predicted at design time. This is important for the system developed for the paper as we do not know the bounds of how many servers could be in a cluster at one time or the maximum peak demand for the service and as such we want a system which is able to adapt the control law dynamically.
-	\item Resilient - parts of the system can die or be lost but the remaining still perform their goal. In a cloud environment this is desired, as servers can come up an down at any time, and even network connectivity could be lost between servers or between data centers.
-	\item Emergent - the complex behaviour arises from the properties and behaviour of the simple parts. As a cloud of servers increases in size it becomes more complicated for a single controller to manage the entire system. As such a system where the control emerges from the interactions of a lot of small parts is desired as it decreases complexity and can scale much more, at the cost of overall resource utilization.
-	\item Anticipation - the system can anticipate problems and solve them before they impact the whole system. This is obviously desired, as we wish to detect SLA breaches before they happen, such that corrective actions can be taken and the breach can be avoided.
-\end{enumerate}
+The reason to use a self-organizing systems for the adaptation is due to the intrinsic properties that self-organizing systems poses - adaptability, resilience, emergence and anticipation.
 
-\section{SLA breach prediction: Ant Colony Optimization}
+\subsection{SLA breach prediction: Ant Colony Optimization}
 
 The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:aco} is best known for load balancing clouds or finding the best route in a network. At a high level the algorithm uses a number of simple agents called ants which traverse the network and leave a trail of pheromones which other ants can then follow. Good paths or solutions are reinforced by having more ants traverse them and leaving more pheromones. Once a path or solution is no longer viable, less ants travel it and another path is reinforced as more ants travel that path. In networking optimization ants behave as normal packets and traverse the network from router to router. When an ant reaches a router it can look at how long the arrival router's buffer queue is for the router the ant came from and then reinforce that route based on latency, buffer sizes, etc. When going back to the source, more ants will prefer edges with higher pheromone values thus resulting in that path being reinforced. At the same time the pheromone level always decays at a given rate such that edges that are no longer travelled have their pheromone levels slowly decrease. As more time passes, ants will continue to add more pheromone on good paths in the end resulting in the path with the lowest load being reinforced. If the load in the network changes, ants will be able to start reinforcing the path with the better performance and forget about the previous path.
 
@@ -513,31 +507,6 @@ In order to avoid having all ants visit a new node at the same time, whenever an
 t_{new} = random(0, max(t_{known}))
 \label{eq:randomnew}
 \end{equation}
-
-An ant's behaviour can be described by the algorithm below:
-
-\begin{algorithm}
-\begin{algorithmic}
-	\State Calculate pheromone at current node
-	\State Update ant's server history tables
-	\If{Ant should morph}
-		\State Morph ant
-	\Else
-		\State Calculate next server for ant
-		\State Send ant to next server
-	\EndIf
-\end{algorithmic}
-\caption{Ant Colony Optimization Pseudocode}\label{ant:pseudocode}
-\end{algorithm}
-
-For example, for a network of five servers Figure \ref{fig:antnetwork} shows the behaviour of the ant algorithm.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{aco_cloud}
-	\caption{Ant Colony Optimization Network}
-	\label{fig:antnetwork}
-\end{figure}
 
 \subsection{Server and cloud load: Pheromone levels}
 
@@ -714,15 +683,6 @@ The house hunting algorithm is performed in rounds and ants can be in one of fou
 	\item Final - A single nest remains so all ants go to it and that is the solution
 \end{enumerate}
 
-The state diagram for the ants can be described as in Figure \ref{fig:anthousehuntingstate}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{aco_state}
-	\caption{Ant House Hunting State Diagram}
-	\label{fig:anthousehuntingstate}
-\end{figure}
-
 In the first round all house hunting ants initialize a nest and go to it. The ants then simulate the performance of the solution as described previously. If the simulated result's performance is under a given threshold, then the ant goes into the passive state, otherwise it goes into the active state.
 
 In the second round, all ants return to the home nest and active ants try to recruit other ants at the home nest. Passive ants can not be recruited until the final round when all ants go to the single remaining nest. Active ants recruit randomly from the other active ants at the home nest by choosing another ant to recruit and bring it to it's committed nest. In order to ensure no conflicts between recruiting ants, the ants recruit iteratively and an ant which was already recruited does not recruit someone else. This recruitment is biased by the perceived suitability of the nest by the ants, such that better nests are given priority. The bias is achieved by sorting the ants by the perceived viability and then randomly choosing a recruiter ant such that ants with better suitability have a higher chance of being recruiters and ants with lower viability have a higher chance of being recruited. This is achieved using the following formula, where the probability of an ant to recruit is defined as the viability of the ant's chosen nest divided by the sum of all the ant's chosen nests.
@@ -738,45 +698,6 @@ Once an ants recruits another ant the two ants go together to the nest of the re
 	\item If the nest is the same nest that the ant went to before and the number of ants has decreased then the ant becomes passive because the nest is in the process of being dropped out. The ant returns home in the same round that active ants wait at the new nest.
 	\item If the nest is different then the nest the ant was committed to then the ant waits a round and then it checks to see if the number of ants at its new nest has decreased or not. If the number has decreased, then this nest is dropping out as the ants already committed to it have gone to the home nest and the ant becomes passive. Otherwise, the ant commits to its new nest and goes home to recruit other ants.
 \end{enumerate}
-
-The above algorithm can be described as follows in pseudo-code in Figure \ref{ant:pseudocodeHouseHunting}. $R_{x}$ represents round x.
-
-\begin{algorithm}
-\begin{algorithmic}
-	\State $R_{1}$: Go to new nest
-	\State Compute suitability of new nest
-	\If{Suitability $<$ threshold}
-		Switch to passive
-	\EndIf
-	\State $R_{2}$: Go to home nest
-	\If{Ant is active \&\& Ant is not recruited}
-		\State Recruit another ant
-		\State Go to new nest
-	\ElsIf{Ant is recruited}
-		\State Go to new nest
-	\EndIf
-	\State $R_{3}$: Count number of ants at new nest = $count_{new}$
-	\If{Nest is same and $count_{new} >= count_{old}$}
-		\State Wait round
-	\ElsIf{Nest is same and $count_{new} < count_{old}$}
-		\State Switch to passive
-		\State Go to home nest
-	\ElsIf{Nest is different}
-		\State Wait round
-	\EndIf
-	\State $R_{4}$: Count number of ants at new nest $count_{new}$
-	\If{$count_{new} == count_{home}$}
-		\State Switch to final state
-	\ElsIf{$count_{new} < count_{old}$}
-		\State Switch to passive
-		\State Go to $R_{2}$
-	\EndIf
-	\State Return final state
-	\State Switch ants to ACO ants
-\end{algorithmic}
-\caption{Ant House Hunting Pseudocode}\label{ant:pseudocodeHouseHunting}
-\end{algorithm}
-
 \subsection{Mathematical model: nest viability}
 
 In order to determine if a nest should be considered as a solution ants must determine the viability of the nest. Because it is impossible for ants to predict how the user requests would be processed by more/less servers the ants use a heuristic to approximate the viability of each solution. It is important to note that due to each ant having a different memory of servers it has recently visited, different ants will see the same nest as having a different viability score.
@@ -832,41 +753,30 @@ The viability of the nest is calculated as in the case of the overloaded cloud. 
 
 In order to test the performance of the self-organizing system previously described, a simulation was created on top of the CloudSim and CloudSimEx systems. CloudSim is a framework for modelling and simulating cloud systems in which various tests can be run - for example the placement of tasks in a cloud or the performance of a cloud system. CloudSim allows users to define datacenters which are composed of hosts which can run virtual machines and virtual machines which run on top of the hosts. Both hosts and virtual machines are defined in terms of million instructions per second (MIPS) and memory available. Once a datacenter is defined, a workload can be defined as well to be executed in the datacenter. CloudSim workloads are called cloudlets - a cloudlet represents a user task and defines how many million instructions (MI) the task takes as well as how much memory the task needs. As such a cloudlet's execution time will depend on its' lifetime in MIs and how many MIPS the VM the cloudlet is allocated to has. The usage of MIPS and MI to represent loads and available resources make it complicated to define workloads that would represent real world behaviours.
 
-CloudSimEx extends CloudSim by adding the concept of web sessions. Internally a web session is composed of a number of web cloudlets, where each web cloudlet has a small RAM and MIPS requirements and later web cloudlets in a web session can not be completed until all previous web cloudlets have completed. Web sessions also have the property of targeting both application server VMs and database VMs, with the web session alternating cloudlets running on either application server or database server. Furthermore, CloudSimEx also adds the concept of scaling policies which can be applied on a cloud. A scaling policy adds or removes servers to/from the cloud when the policy determines that some conditions are breached. A basic policy is implemented in CloudSimEx which scales the cloud when the CPU usage passes certain thresholds and also includes a quiet time after a scaling action has been performed. The basic policy implements an interface which makes it easy to add other scaling policies. 
-
 Because CloudSim and CloudSimEx only include CPU usage and memory usage as measurable metrics, the simulation of the self-organizing system uses the CPU usage as an input for the ACO algorithm to determine how the pheromone should be updated. In order to run the self-organizing system in this paper and compare it to existing results, a number of workloads which are predefined in CloudSimEx are used.
-
-The architecture of the simulation framework is presented in Figure \ref{fig:simulation-design}.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{simulation_archi}
-	\caption{Simulation Framework System}
-	\label{fig:simulation-design}
-\end{figure}
 
 The simulation runs three different scaling policies for comparison. The first scaling policy used is the simple scaling policy provided by CloudSimEx. This scaling policy measures the average CPU usage of the cloud and when predefined thresholds are breached it either adds one server if the upper threshold is breached or removes one server if the lower threshold is breached. The policy also includes a quiet time, which is a period of time after an action was taken during which no other action will be taken. For the purpose of these tests the thresholds for the simple scaling policy are set to:
 
-\begin{description}
-	\item[Upper threshold] is set to 80\% average CPU utilization across the cloud
-	\item[Lower threshold] is set to 10\% average CPU utilization across the cloud
-	\item[Quiet time] is set to 150s during which no other action will be taken
-\end{description}
+\begin{itemize}
+	\item Upper threshold - is set to 80\% average CPU utilization across the cloud
+	\item Lower threshold - is set to 10\% average CPU utilization across the cloud
+	\item Quiet time - is set to 150s during which no other action will be taken
+\end{itemize}
 
 The values chosen match the default values for the Amazon EC2 auto scaling policy.
 
 The second policy is based on the predictive ACO algorithm presented in this paper but without the house hunting algorithm to determine the number of instances to scale up or down. The policy uses the ACO algorithm to determine when instances should be added or removed. When a decision is taken that servers need to be added or removed a single server instance is added or removed at one time. The ACO policy does not need quiet time defined as it inherently includes quiet time due to the fact that it takes time for the pheromone to build up or decrease. For the purpose of these simulations the ACO algorithm runs with the following parameters:
 
-\begin{description}
-	\item[Decay amount] is set to 1
-	\item[Decay period] is set to 15s
-	\item[Minimum ant wait time at an under-loaded node] is set to 1s
-	\item[Maximum ant pheromone added at an under-loaded node] is set to 4
-	\item[Ant memory size] is set to 5
-	\item[Pheromone level for triggering server removal] is set to 100
-	\item[Pheromone level for triggering server addition] is set to 25
-	\item[CPU is considered to be balanced] if it is between 45\% and 55\% utilization
-\end{description}
+\begin{itemize}
+	\item Decay amount - is set to 1
+	\item Decay period - is set to 15s
+	\item Minimum ant wait time at an under-loaded node - is set to 1s
+	\item Maximum ant pheromone added at an under-loaded node - is set to 4
+	\item Ant memory size - is set to 5
+	\item Pheromone level for triggering server removal - is set to 100
+	\item Pheromone level for triggering server addition - is set to 25
+	\item CPU is considered to be balanced - if it is between 45\% and 55\% utilization
+\end{itemize}
 
 The third tested policy contains both the ACO algorithm for prediction of SLA breaches and the house hunting algorithm for the optimization of the cloud size when a breach is detected. The tests are run with the same parameters as the second policy.
 
@@ -879,14 +789,7 @@ The performance of the self-organizing system presented in this paper was run on
 
 The first simulation run is a simulation where the workload is low and as such not a large number of VMs are required to run at the same time in order to meet the desired SLAs for the application.
 
-The workload for this test starts with a mean of 60 sessions per hour and a standard deviation of 1 and gradually increases towards a mean of 1000 sessions per hour with a standard deviation of 5, at 10 - 12 hours. This is followed by a small drop at 13 hours to 500 sessions after which the load goes back to 1000 sessions for hour until 17 hours. After this, the workload decreases gradually until it reaches 30 sessions per hour with a standard deviation of 1 at 24 hours. The distribution of the sessions per hour can be seen in Figure \ref{fig:sim1-workload}. This test simulates a usual workload seen in online services where the demand peaks at one point during the day.
-
-\begin{figure}
-	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim1/sim1-workload.png}
-	\caption{Simulation - low workload}
-	\label{fig:sim1-workload}
-\end{figure}
+The workload for this test starts with a mean of 60 sessions per hour and a standard deviation of 1 and gradually increases towards a mean of 1000 sessions per hour with a standard deviation of 5, at 10 - 12 hours. This is followed by a small drop at 13 hours to 500 sessions after which the load goes back to 1000 sessions for hour until 17 hours. After this, the workload decreases gradually until it reaches 30 sessions per hour with a standard deviation of 1 at 24 hours. This test simulates a usual workload seen in online services where the demand peaks at one point during the day.
 
 Figures \ref{fig:sim1-basestats}, \ref{fig:sim1-antSimplestats} and \ref{fig:sim1-antHHstats} show the statistical results for the simulation runs. The results are averaged per hour and across the 5 runs for each auto-scaling algorithm. The graphs include average CPU usage as well as average number of sessions per server and average provisioned servers. Looking at the three graphs, it can be seen that the simple ant auto scaling algorithm obtains better CPU utilization than the simple auto scaling approach, and better than the house hunting algorithm also. At the same time, the simple ant auto scaling algorithm achieves this, while maintaining the server count more stable than the simple auto scaling algorithm.
 
@@ -945,16 +848,9 @@ House hunting scaling & 115.4 & 574.3 & 1.95 \\
 
 \subsection{High workload, high number of VMs}
 
-The second test uses the same workload as the first test but scaled 5 times. With this scaling the simulation ends up requiring a large number of servers. The distribution of the sessions per hour can be seen in Figure \ref{fig:sim2-workload}.
+The second test uses the same workload as the first test but scaled 5 times. With this scaling the simulation ends up requiring a large number of servers.
 
 Figures \ref{fig:sim2-basestats}, \ref{fig:sim2-antSimplestats} and \ref{fig:sim2-antHHstats} show the statistical results for the simulation runs. The results are averaged per hour and across the 5 runs for each auto-scaling algorithm. Looking at the three graphs, it can be seen that the simple ant auto scaling algorithm and the simple auto scaling approach behave very similar. Both increase the number of servers as demand increases, and then once demand decreases they both decrease the number of servers in the cloud. Due to the fact that the two algorithms add servers one by one, they end up under provisioning the cloud when demand is high and over provisioning when demand goes low. The house hunting algorithm behaves much better than the two simple scaling algorithms as it is able to keep up with the demand by adding more servers at one time and removing more servers at the same time. The same results can be seen in Table \ref{table:sim2}. The house hunting algorithm is able to achieve better server utilization - only 768 seconds of average CPU utilization under 20\% compared to more than 20000s for the simple scaling algorithms, while performing less scale up/scale down actions. The delay results in table \ref{table:sim2-delay} are very similar for all 3 scaling algorithms with average delay at, or near 0 and very small maximum delays. In such a case, the house hunting algorithm behaves better as it takes less actions and uses less servers than the simple scaling algorithm.
-
-\begin{figure}
-	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-workload.png}
-	\caption{Simulation - High workload}
-	\label{fig:sim2-workload}
-\end{figure}
 
 \begin{figure}
 	\centering
@@ -1007,18 +903,11 @@ House hunting scaling & 1.1 & 28.4 & 40.9 \\
 
 \subsection{Very high workload, very high number of VMs}
 
-The final test uses a very high workload with an initial peak of 5000 sessions/hour after 5 hours, followed by a decrease in requests and a second much higher peak of 10000 sessions/hour after 12 hours. The distribution of the sessions per hour can be seen in Figure \ref{fig:sim3-workload}.
+The final test uses a very high workload with an initial peak of 5000 sessions/hour after 5 hours, followed by a decrease in requests and a second much higher peak of 10000 sessions/hour after 12 hours.
 
 Figures \ref{fig:sim3-basestats}, \ref{fig:sim3-antSimplestats} and \ref{fig:sim3-antHHstats} show the statistical results for the simulation runs. The results are averaged per hour and across the 5 runs for each auto-scaling algorithm. Looking at the three graphs, the house hunting algorithm again performs the best, however the simple ant autoscaling algorithm performs worse than the simple autoscaling algorithm. Both simple autoscaling algorithms have trouble as the demand increases quickly, but the simple ant autoscaling can not answer quickly enough. This is due to the fact that there's a certain time needed for the pheromones to pass the trigger level, and after the trigger is passed only a single server can be added. This results in long periods when all the servers are overloaded and average CPU usage is 100\%. Compared to the two simple autoscaling algorithms, the house hunting algorithm behaves much better reaching the optimal number of servers quicker and maintaining this number of servers.
 
 The same results can be seen in Table \ref{table:sim3}. The house hunting algorithm is able to achieve better server utilization again - only 2000 seconds of average CPU utilization under 20\% compared to more than 15000 and 46000s for the two simple scaling algorithms, while performing less scale up/scale down actions.  The delay results in table \ref{table:sim3-delay} show the house hunting algorithm with slightly higher average delays than the other two algorithms, and much higher maximum delay. This can be explained by the fact that the other two algorithms overprovision - seen by the over provision metrics, while the house hunting algorithm underprovisions in a worst case.
-
-\begin{figure}
-	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-workload.png}
-	\caption{Simulation - very high workload}
-	\label{fig:sim3-workload}
-\end{figure}
 
 \begin{figure}
 	\centering
@@ -1168,9 +1057,9 @@ The performance tests show that the system behaves as desired and that the ACO a
 \section{Conclusion And Future work}
 \label{sec:conclusion}
 
-This paper has presented a self-organizing SLA breach prediction algorithm based on the ACO algorithm. This algorithm is capable of predicting a future SLA breach by having small agents - ants - move from server to server based on a pseudo random chance and use the information at the servers to lay down pheromones for other ants to use in their calculations. The pheromone level across the servers then acts as a proxy for how overloaded is the server cloud.
+This paper has presented an Autonomic Computing Systems for Cloud Resource Management based on two ant algorithms. The first algorithm is capable of predicting a future SLA breach by having small agents - ants - move from server to server based on a pseudo random chance and use the information at the servers to lay down pheromones for other ants to use in their calculations. The pheromone level across the servers then acts as a proxy for how overloaded is the server cloud. The second algorithm decides how many servers should be added.
 
-In this paper the amount of how much pheromone to add and how long an ant waits at a server is based on a single value which represents the stable cloud. It would be better if the calculation was using a range of values for when the cloud is stable, otherwise the system can lead to oscillations. Future work will be done to improve the algorithm and also add a robust self-organizing plan function to decide how many servers to add or remove from the server when an SLA breach is detected.
+In this paper the amount of how much pheromone to add and how long an ant waits at a server is based on a single value which represents the stable cloud. It would be better if the calculation was using a range of values for when the cloud is stable, otherwise the system can lead to oscillations. Future work will be done to improve the algorithms and also to run a full scale test-bed.
 
 % conference papers do not normally have an appendix
 
