@@ -422,19 +422,9 @@ The reason to use a self-organizing systems for the adaptation is due to the int
 
 The ant colony optimization (ACO) algorithm \cite{antalgorithm}, \cite{selforg:aco} is best known for load balancing clouds or finding the best route in a network. At a high level the algorithm uses a number of simple agents called ants which traverse the network and leave a trail of pheromones which other ants can then follow. Good paths or solutions are reinforced by having more ants traverse them and leaving more pheromones. Once a path or solution is no longer viable, less ants travel it and another path is reinforced as more ants travel that path. In networking optimization ants behave as normal packets and traverse the network from router to router. When an ant reaches a router it can look at how long the arrival router's buffer queue is for the router the ant came from and then reinforce that route based on latency, buffer sizes, etc. When going back to the source, more ants will prefer edges with higher pheromone values thus resulting in that path being reinforced. At the same time the pheromone level always decays at a given rate such that edges that are no longer travelled have their pheromone levels slowly decrease. As more time passes, ants will continue to add more pheromone on good paths in the end resulting in the path with the lowest load being reinforced. If the load in the network changes, ants will be able to start reinforcing the path with the better performance and forget about the previous path.
 
-\subsection{ACO Model for SLA breach prediction}
-
 The self-organizing algorithm used to predict SLA breaches in cloud systems is similar in nature to how the ACO algorithm behaves when finding the best route in a network. However, there are a number of significant differences due to the nature of the problem that is being resolved. The goal of the ACO algorithm while performing path optimization is to discover how viable different routes are and reinforce the good routes while at the same time diminishing the use of bad routes. For this problem the ants deposit pheromones on the routes between nodes such that paths with higher pheromones are more desired. In the case of the SLA breach prediction problem, the goal of the ACO algorithm is to determine based on the knowledge about the visited servers if the whole cloud is about to breach it's SLA requirements. For this problem, the ants deposit pheromones at the servers and use the amount of pheromone as a proxy of how loaded the whole cloud.
 
-The ACO model for SLA breach prediction is composed of three components:
-
-\begin{enumerate}
-	\item Ants - ants are simple agents which traverse the network of servers and deposit pheromone at the servers based on a mathematical model
-	\item Pheromone levels - each server has it's own pheromone level which is increased by ants visiting the server and decays periodically. Pheromones are a proxy of how overloaded a single server is.
-	\item Mathematical model - this is the model which converts the fuzzy model result of each server into a pheromone value. The mathematical model also represents when an SLA breach is predicted.
-\end{enumerate}
-
-\subsection{Self-organizing agent: The ant}
+The ACO model for SLA breach prediction is composed of three components: Ants - ants are simple agents which traverse the network of servers and deposit pheromone at the servers based on a mathematical model; Pheromone levels - each server has it's own pheromone level which is increased by ants visiting the server and decays periodically. Pheromones are a proxy of how overloaded a single server is; Mathematical model - this is the model which converts the fuzzy model result of each server into a pheromone value. The mathematical model also represents when an SLA breach is predicted.
 
 Ants are simple agents that traverse the network of servers. They have no knowledge about the global state of the cloud and how overloaded all the servers in the cloud are. Ants only know the state at the currently visited server and also have a short memory about the last $x$ servers which the ant has visited and what the pheromone level was at those servers.
 
@@ -508,8 +498,6 @@ t_{new} = random(0, max(t_{known}))
 \label{eq:randomnew}
 \end{equation}
 
-\subsection{Server and cloud load: Pheromone levels}
-
 For the purpose of controlling the number of servers in the cloud, the pheromone level in the network is used as a proxy for how loaded the entire cloud of servers is and is used to decide when to add or remove servers. As ants move through the network of servers they deposit pheromones - whenever an ant reaches a server it computes how much pheromone to deposit based on the result of the control system for that server. If the server's control system has a result which shows that the server is underloaded then more pheromone is deposited. If the server is overloaded then less pheromone is deposited. At the same time the pheromone amount at each server decays periodically at a constant rate. As such, a large amount of pheromone shows that servers are underloaded and servers should be removed, while a small amount of pheromone shows that servers are overloaded and that servers should be added.
 
 On top of updating the pheromone at each server, each ant is also responsible for measuring the pheromone level at each node it visits. Ants store a history of the last $x$ nodes that they visited and the pheromone level at each of these nodes. Every time an ant moves to a new server, it removes the oldest pheromone value from this list and adds the pheromone at the current node. It then computes an aggregate metric of the pheromone at the last $x$ nodes visited, which is a simple average:
@@ -520,9 +508,7 @@ p_{ant} = \sum_{i=1}^{N} p_{N} / N
 
 where $p_{N}$ is the pheromone at server $N$. Once the pheromone level of an ant goes under a predefined value, the ant triggers the algorithm to determine the new count of servers which should be added to the cloud. Similarly, if the pheromone level of an ant becomes too high, the ant triggers the algorithm to determine the number of servers which should be removed from the cloud. The algorithm used to increase or decrease the size of the cloud triggers when more than half of the ants in the system agree that the algorithm should start. Until enough ants agree to start the cloud size optimization the ants continue moving through the network of servers and update the pheromone levels. Once more than half of the ants agree all ants stop and the optimization algorithm starts.
 
-\subsection{Mathematical model}
-
-The pheromone level at a single node is defined base don the previous section as:
+The pheromone level at a single node is defined based on the previous section as:
 
 \begin{equation}
 p^{t}_{n} = p^{t-1}_{n} + \sum_{i=1}^{K}(\tau_{i} * (1 - p)) - \rho
@@ -638,8 +624,6 @@ The ant house hunting algorithm is inspired by the behaviour ant colonies use in
 
 Initially, when the nest is in danger of being destroyed ants start searching for a new nest where the colony can relocate. In this phase, scouting ants leave the nest and search for a new location for the colony to relocate to. Once a scout finds a suitable location, it evaluates the location based on various factors and then returns to the home nest. Once a scout ant is satisfied with the new nest it goes back to the home nest and starts recruiting other ants to its chosen nest. Ants then start doing tandem runs where one ant leads another. Upon arriving at a new nest, a recruited ant evaluates the new nest and then starts doing tandem runs if the new nest is acceptable. At this point there are many possible nests and the ants must reach a consensus as to which nest will be the new home. One approach that ants are assumed to use is that of quorum threshold \cite{selforg:ant-quorum}. When ants reach the home nest they check if a quorum has been reached and if yes, they start to move the entire ant colony to the new nest.
 
-\subsection{Model for Cloud size optimization}
-
 Based on the above natural process, a self-organizing system can be developed in order to optimize the number of servers in the cloud by having an ant colony search for the optimal number of servers which should be up in the cloud at a given time. This algorithm works by having each ant in the ant colony search for a new nest, where a nest is represented by a new optimum number of servers in the cloud. The ants are the same ants for the ACO algorithm. When the SLA breach is predicted the ants morph to house hunting ants and start to look for a new home. The algorithm assumes that there is a home nest where the ants can meet after searching for a new nest and exchange information. Once all the ants have agreed on the same optimum value, the servers are added or removed as desired and all ants are morphed back into food foraging ants for the ACO algorithm.
 
 The model for optimizing the size of the cloud is composed of three components:
@@ -649,8 +633,6 @@ The model for optimizing the size of the cloud is composed of three components:
 	\item House hunting ants - ants are simple agents which search for a new home nest
 	\item Mathematical model - this is the model which represents the viability of a nest from the point of view of an ant.
 \end{enumerate}
-
-\subsection{Nest candidates}
 
 For each ant that morphs into a house hunting ant a new nest is created. The nest is initialized with a value representing the number of servers which should be up in the cloud if the nest is selected as the new home. These possible solutions are computed as permutations of the current size of the cloud as known by ant which will have the nest as its first candidate. If the ant was morphed because of lack of pheromone, then a random value is generated which represents the number of servers to be added. Each random value is proportional to the size of the cloud and the pheromone level across the last $N$ servers known by the ant. For example, if the cloud contains 100 servers, then the ant would be initialized with a random values, which is defined as:
 
@@ -668,20 +650,11 @@ ServerCount_{remove} = \frac{N}{2} * rand + \frac{N}{2} * \frac{p_{ant} - Pt_{ma
 
 Similar to the add case, the higher the pheromone level compared to the maximum threshold the more servers will be removed from the cloud.
 
-\subsection{Self-organizing agent: House hunting ant}
-
 In order for an ant to determine the viability of a nest, the ant will check the number of servers to add or remove and simulate what effect that will have on the ants pheromone levels. If the cloud should increase in size, then the ant replaces a proportional number of servers in its history with empty servers and then recalculate the average pheromone across those servers. If the cloud should decrease in size, then the ant removes a proportional number of servers in its history and then redistributes the pheromone across the remaining servers.
 
 For example, if the ant has in its history 10 servers and the nest has a desired server value of 15, then the ant will hide 3 of its servers and replace them with 3 servers with medium pheromone level and recalculate the average pheromone across the servers. If however the ant has in its history 10 servers and the nest has a desired server value of 7, then the ant will hide 3 of its servers and redistribute the pheromone from those 3 servers on the remaining 7 levels.
 
-The house hunting algorithm is performed in rounds and ants can be in one of four states:
-
-\begin{enumerate}
-	\item Search - This is the initial state of ants which search for a new nest
-	\item Active - The ant is committed to a good nest and tries to recruit other ants to it
-	\item Passive - The ant is committed to a bad nest and is waiting to be recruited
-	\item Final - A single nest remains so all ants go to it and that is the solution
-\end{enumerate}
+The house hunting algorithm is performed in rounds and ants can be in one of four states: Search - This is the initial state of ants which search for a new nest; Active - The ant is committed to a good nest and tries to recruit other ants to it; Passive - The ant is committed to a bad nest and is waiting to be recruited; Final - A single nest remains so all ants go to it and that is the solution.
 
 In the first round all house hunting ants initialize a nest and go to it. The ants then simulate the performance of the solution as described previously. If the simulated result's performance is under a given threshold, then the ant goes into the passive state, otherwise it goes into the active state.
 
@@ -698,7 +671,6 @@ Once an ants recruits another ant the two ants go together to the nest of the re
 	\item If the nest is the same nest that the ant went to before and the number of ants has decreased then the ant becomes passive because the nest is in the process of being dropped out. The ant returns home in the same round that active ants wait at the new nest.
 	\item If the nest is different then the nest the ant was committed to then the ant waits a round and then it checks to see if the number of ants at its new nest has decreased or not. If the number has decreased, then this nest is dropping out as the ants already committed to it have gone to the home nest and the ant becomes passive. Otherwise, the ant commits to its new nest and goes home to recruit other ants.
 \end{enumerate}
-\subsection{Mathematical model: nest viability}
 
 In order to determine if a nest should be considered as a solution ants must determine the viability of the nest. Because it is impossible for ants to predict how the user requests would be processed by more/less servers the ants use a heuristic to approximate the viability of each solution. It is important to note that due to each ant having a different memory of servers it has recently visited, different ants will see the same nest as having a different viability score.
 
@@ -751,32 +723,11 @@ The viability of the nest is calculated as in the case of the overloaded cloud. 
 \section{Simulation Environment}
 \label{sec:testbed}
 
-In order to test the performance of the self-organizing system previously described, a simulation was created on top of the CloudSim and CloudSimEx systems. CloudSim is a framework for modelling and simulating cloud systems in which various tests can be run - for example the placement of tasks in a cloud or the performance of a cloud system. CloudSim allows users to define datacenters which are composed of hosts which can run virtual machines and virtual machines which run on top of the hosts. Both hosts and virtual machines are defined in terms of million instructions per second (MIPS) and memory available. Once a datacenter is defined, a workload can be defined as well to be executed in the datacenter. CloudSim workloads are called cloudlets - a cloudlet represents a user task and defines how many million instructions (MI) the task takes as well as how much memory the task needs. As such a cloudlet's execution time will depend on its' lifetime in MIs and how many MIPS the VM the cloudlet is allocated to has. The usage of MIPS and MI to represent loads and available resources make it complicated to define workloads that would represent real world behaviours.
+In order to test the performance of the self-organizing system previously described, a simulation was created on top of the CloudSim \cite{related:cloudsim} and CloudSimEx \cite{related:clousimex-scaling} systems. Because CloudSim and CloudSimEx only include CPU usage and memory usage as measurable metrics, the simulation of the self-organizing system uses the CPU usage as an input for the ACO algorithm to determine how the pheromone should be updated. In order to run the self-organizing system in this paper and compare it to existing results, a number of workloads which are predefined in CloudSimEx are used.
 
-Because CloudSim and CloudSimEx only include CPU usage and memory usage as measurable metrics, the simulation of the self-organizing system uses the CPU usage as an input for the ACO algorithm to determine how the pheromone should be updated. In order to run the self-organizing system in this paper and compare it to existing results, a number of workloads which are predefined in CloudSimEx are used.
+The simulation runs three different scaling policies for comparison. The first scaling policy used is the simple scaling policy provided by CloudSimEx. This scaling policy measures the average CPU usage of the cloud and when predefined thresholds are breached it either adds one server if the upper threshold is breached or removes one server if the lower threshold is breached. The policy also includes a quiet time, which is a period of time after an action was taken during which no other action will be taken. For the purpose of these tests the thresholds for the simple scaling policy are set to: Upper threshold - is set to 80\% average CPU utilization across the cloud, Lower threshold - is set to 10\% average CPU utilization across the cloud and Quiet time - is set to 150s during which no other action will be taken. The values chosen match the default values for the Amazon EC2 auto scaling policy.
 
-The simulation runs three different scaling policies for comparison. The first scaling policy used is the simple scaling policy provided by CloudSimEx. This scaling policy measures the average CPU usage of the cloud and when predefined thresholds are breached it either adds one server if the upper threshold is breached or removes one server if the lower threshold is breached. The policy also includes a quiet time, which is a period of time after an action was taken during which no other action will be taken. For the purpose of these tests the thresholds for the simple scaling policy are set to:
-
-\begin{itemize}
-	\item Upper threshold - is set to 80\% average CPU utilization across the cloud
-	\item Lower threshold - is set to 10\% average CPU utilization across the cloud
-	\item Quiet time - is set to 150s during which no other action will be taken
-\end{itemize}
-
-The values chosen match the default values for the Amazon EC2 auto scaling policy.
-
-The second policy is based on the predictive ACO algorithm presented in this paper but without the house hunting algorithm to determine the number of instances to scale up or down. The policy uses the ACO algorithm to determine when instances should be added or removed. When a decision is taken that servers need to be added or removed a single server instance is added or removed at one time. The ACO policy does not need quiet time defined as it inherently includes quiet time due to the fact that it takes time for the pheromone to build up or decrease. For the purpose of these simulations the ACO algorithm runs with the following parameters:
-
-\begin{itemize}
-	\item Decay amount - is set to 1
-	\item Decay period - is set to 15s
-	\item Minimum ant wait time at an under-loaded node - is set to 1s
-	\item Maximum ant pheromone added at an under-loaded node - is set to 4
-	\item Ant memory size - is set to 5
-	\item Pheromone level for triggering server removal - is set to 100
-	\item Pheromone level for triggering server addition - is set to 25
-	\item CPU is considered to be balanced - if it is between 45\% and 55\% utilization
-\end{itemize}
+The second policy is based on the predictive ACO algorithm presented in this paper but without the house hunting algorithm to determine the number of instances to scale up or down. The policy uses the ACO algorithm to determine when instances should be added or removed. When a decision is taken that servers need to be added or removed a single server instance is added or removed at one time. The ACO policy does not need quiet time defined as it inherently includes quiet time due to the fact that it takes time for the pheromone to build up or decrease. For the purpose of these simulations the ACO algorithm runs with the following parameters: Decay amount - is set to 1,  Decay period - is set to 15s, Minimum ant wait time at an under-loaded node - is set to 1s, Maximum ant pheromone added at an under-loaded node - is set to 4, Ant memory size - is set to 5, Pheromone level for triggering server removal - is set to 100, Pheromone level for triggering server addition - is set to 25, CPU is considered to be balanced - if it is between 45\% and 55\% utilization
 
 The third tested policy contains both the ACO algorithm for prediction of SLA breaches and the house hunting algorithm for the optimization of the cloud size when a breach is detected. The tests are run with the same parameters as the second policy.
 
@@ -795,22 +746,22 @@ Figures \ref{fig:sim1-basestats}, \ref{fig:sim1-antSimplestats} and \ref{fig:sim
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim1/sim1-basestats.png}
-	\caption{Simulation - Low workload: Simple autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim1/sim1-basestats.png}
+	\caption{Simulation - Low workload: Simple}
 	\label{fig:sim1-basestats}
 \end{figure}
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim1/sim1-antSimplestats.png}
-	\caption{Simulation - Low workload: Simple ant autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim1/sim1-antSimplestats.png}
+	\caption{Simulation - Low workload: Simple ant}
 	\label{fig:sim1-antSimplestats}
 \end{figure}
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim1/sim1-antHHstats.png}
-	\caption{Simulation - Low workload: House hunting ant autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim1/sim1-antHHstats.png}
+	\caption{Simulation - Low workload: House hunt}
 	\label{fig:sim1-antHHstats}
 \end{figure}
 
@@ -826,9 +777,9 @@ The simple scaling algorithm takes a lot more scale up and scale down actions th
 \hline
 Scaling Algorithm & Scale Up Count & Scale Down Count & Over Provisioned - 20\% (s) & Over Provisioned - 40\% (s) & High usage - 70\% (s) & High usage - 80\% (s) \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 755 & 762 & 7140 & 88423 & 3048 & 1080 \\
-Simple ant scaling & 128 & 132 & 2796 & 40104 & 16008 & 7260 \\
-House hunting scaling & 223 & 339 & 16656 & 53352 & 11184 & 5904 \\
+Simple & 755 & 762 & 7140 & 88423 & 3048 & 1080 \\
+Simple ant & 128 & 132 & 2796 & 40104 & 16008 & 7260 \\
+House hunt & 223 & 339 & 16656 & 53352 & 11184 & 5904 \\
 \end{tabu}
 \end{table}
 
@@ -840,9 +791,9 @@ House hunting scaling & 223 & 339 & 16656 & 53352 & 11184 & 5904 \\
 \hline
 Scaling Algorithm & Average Delay (s) & Maximum delay & Average Servers  \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 28.8 & 118.6 & 3.35 \\
-Simple ant scaling & 20.5 & 75.3 & 3.49 \\
-House hunting scaling & 115.4 & 574.3 & 1.95 \\
+Simple & 28.8 & 118.6 & 3.35 \\
+Simple ant & 20.5 & 75.3 & 3.49 \\
+House hunt & 115.4 & 574.3 & 1.95 \\
 \end{tabu}
 \end{table}
 
@@ -854,22 +805,22 @@ Figures \ref{fig:sim2-basestats}, \ref{fig:sim2-antSimplestats} and \ref{fig:sim
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-basestats.png}
-	\caption{Simulation - High workload: Simple autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim2/sim2-basestats.png}
+	\caption{Simulation - High workload: Simple}
 	\label{fig:sim2-basestats}
 \end{figure}
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-antSimplestats.png}
-	\caption{Simulation - High workload: Simple ant autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim2/sim2-antSimplestats.png}
+	\caption{Simulation - High workload: Simple ant}
 	\label{fig:sim2-antSimplestats}
 \end{figure}
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim2/sim2-antHHstats.png}
-	\caption{Simulation - High workload: House hunting ant autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim2/sim2-antHHstats.png}
+	\caption{Simulation - High workload: House hunt}
 	\label{fig:sim2-antHHstats}
 \end{figure}
 
@@ -881,9 +832,9 @@ Figures \ref{fig:sim2-basestats}, \ref{fig:sim2-antSimplestats} and \ref{fig:sim
 \hline
 Scaling Algorithm & Scale Up Count & Scale Down Count & Over Provisioned - 20\% (s) & Over Provisioned - 40\% (s) & High usage - 70\% (s) & High usage - 80\% (s) \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 717 & 693 & 26255 & 50503 & 8952 & 231 \\
-Simple ant scaling & 661 & 656 & 22241 & 42750 & 85873 & 62593 \\
-House hunting scaling & 332 & 253 & 768 & 32643 & 35419 & 18631 \\
+Simple & 717 & 693 & 26255 & 50503 & 8952 & 231 \\
+Simple ant & 661 & 656 & 22241 & 42750 & 85873 & 62593 \\
+House hunt & 332 & 253 & 768 & 32643 & 35419 & 18631 \\
 \end{tabu}
 \end{table}
 
@@ -895,9 +846,9 @@ House hunting scaling & 332 & 253 & 768 & 32643 & 35419 & 18631 \\
 \hline
 Scaling Algorithm & Average Delay (s) & Maximum delay & Average Servers  \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 0 & 14.1 & 46.9 \\
-Simple ant scaling & 1.1 & 15.3 & 37.7 \\
-House hunting scaling & 1.1 & 28.4 & 40.9 \\
+Simple & 0 & 14.1 & 46.9 \\
+Simple ant & 1.1 & 15.3 & 37.7 \\
+House hunt & 1.1 & 28.4 & 40.9 \\
 \end{tabu}
 \end{table}
 
@@ -911,22 +862,22 @@ The same results can be seen in Table \ref{table:sim3}. The house hunting algori
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-basestats.png}
-	\caption{Simulation - Very high workload: Simple autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim3/sim3-basestats.png}
+	\caption{Simulation - Very high workload: Simple}
 	\label{fig:sim3-basestats}
 \end{figure}
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-antSimplestats.png}
-	\caption{Simulation - Very high workload: Simple ant autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim3/sim3-antSimplestats.png}
+	\caption{Simulation - Very high workload: Simple ant}
 	\label{fig:sim3-antSimplestats}
 \end{figure}
 
 \begin{figure}
 	\centering
-		\includegraphics[width=0.75\columnwidth]{results/sim3/sim3-antHHstats.png}
-	\caption{Simulation - Very high workload: House hunting ant autoscaling}
+		\includegraphics[width=0.50\columnwidth]{results/sim3/sim3-antHHstats.png}
+	\caption{Simulation - Very high workload: House hunt}
 	\label{fig:sim3-antHHstats}
 \end{figure}
 
@@ -938,9 +889,9 @@ The same results can be seen in Table \ref{table:sim3}. The house hunting algori
 \hline
 Scaling Algorithm & Scale Up Count & Scale Down Count & Over Provisioned - 20\% (s) & Over Provisioned - 40\% (s) & High usage - 70\% (s) & High usage - 80\% (s) \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 1004 & 833 & 46339 & 86035 & 42768 & 20604 \\
-Simple ant scaling & 726 & 679 & 16412 & 54641 & 83245 & 76837 \\
-House hunting scaling & 354 & 287 & 1956 & 33864 & 32151 & 22080 \\
+Simple & 1004 & 833 & 46339 & 86035 & 42768 & 20604 \\
+Simple ant & 726 & 679 & 16412 & 54641 & 83245 & 76837 \\
+House hunt & 354 & 287 & 1956 & 33864 & 32151 & 22080 \\
 \end{tabu}
 \end{table}
 
@@ -952,9 +903,9 @@ House hunting scaling & 354 & 287 & 1956 & 33864 & 32151 & 22080 \\
 \hline
 Scaling Algorithm & Average Delay (s) & Maximum delay & Average Servers  \\
 \taburowcolors 2{Gray!20..LimeGreen!50}
-Simple scaling & 1 & 27.6 & 70.6 \\
-Simple ant scaling & 3.9 & 22.5 & 43.2 \\
-House hunting scaling & 10.7 & 192 & 42.8 \\
+Simple & 1 & 27.6 & 70.6 \\
+Simple ant & 3.9 & 22.5 & 43.2 \\
+House hunt & 10.7 & 192 & 42.8 \\
 \end{tabu}
 \end{table}
 
